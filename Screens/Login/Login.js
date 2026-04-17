@@ -10,11 +10,7 @@ import {
   StatusBar,
   Alert,
   Linking,
-  navigation,
 } from 'react-native';
-import SchoolDashboard from '../Admin/Dashboard/Dashboard';
-import { createStackNavigator } from '@react-navigation/stack';
-import { useNavigation } from '@react-navigation/native';
 
 
 
@@ -36,11 +32,20 @@ export default function Login({ navigation }) {
     return;
   }
 
-  // Example: basic credential check (replace with real auth)
-  if (email === '1' && password === '123') {
+  // Admin login credentials
+  if (email === 'admin@school.edu' && password === 'admin123') {
     navigation.navigate('SchoolDashboard');
-  } else {
-    Alert.alert('Login Failed', 'Invalid email or password');
+  } 
+  // Principal login credentials
+  else if (email === '3' && password === '123') {
+    navigation.navigate('PrincipalDashboard');
+  }
+  // Demo credentials
+  else if (email === '1' && password === '123') {
+    navigation.navigate('SchoolDashboard');
+  }
+  else {
+    Alert.alert('Login Failed', 'Invalid email or password. \n\nDemo: admin@school.edu / admin123 \nPrincipal: principal@school.edu / principal123');
   }
 };
 
@@ -104,7 +109,8 @@ export default function Login({ navigation }) {
           </View>
           <Text style={styles.title}>Scholar Metric</Text>
           <Text style={styles.subtitle}>
-            Enter your credentials to access the institution
+            Admin: admin@school.edu / admin123{'\n'}
+            Principal: principal@school.edu / principal123
           </Text>
         </View>
 
