@@ -32,20 +32,11 @@ export default function Login({ navigation }) {
     return;
   }
 
-  // Admin login credentials
-  if (email === 'admin@school.edu' && password === 'admin123') {
+  // Example: basic credential check (replace with real auth)
+  if (email === '1' && password === '123') {
     navigation.navigate('SchoolDashboard');
-  } 
-  // Principal login credentials
-  else if (email === '3' && password === '123') {
-    navigation.navigate('PrincipalDashboard');
-  }
-  // Demo credentials
-  else if (email === '1' && password === '123') {
-    navigation.navigate('SchoolDashboard');
-  }
-  else {
-    Alert.alert('Login Failed', 'Invalid email or password. \n\nDemo: admin@school.edu / admin123 \nPrincipal: principal@school.edu / principal123');
+  } else {
+    Alert.alert('Login Failed', 'Invalid email or password');
   }
 };
 
@@ -109,8 +100,7 @@ export default function Login({ navigation }) {
           </View>
           <Text style={styles.title}>Scholar Metric</Text>
           <Text style={styles.subtitle}>
-            Admin: admin@school.edu / admin123{'\n'}
-            Principal: principal@school.edu / principal123
+            Enter your credentials to access the institution
           </Text>
         </View>
 

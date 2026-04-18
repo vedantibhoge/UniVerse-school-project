@@ -16,6 +16,9 @@ import PrincipalStaffManagement from './PrincipalStaffManagement';
 import PrincipalStudentOverview from './PrincipalStudentOverview';
 import PrincipalFinance from './PrincipalFinance';
 import PrincipalSettings from './PrincipalSettings';
+import PrincipalAcademicPerformance from './PrincipalAcademicPerformance';
+import PrincipalAttendanceAnalytics from './PrincipalAttendanceAnalytics';
+import PrincipalEnrollmentTrends from './PrincipalEnrollmentTrends';
 
 const { width } = Dimensions.get('window');
 
@@ -65,9 +68,9 @@ function PrincipalSidebarContent({ activeTab, onTabChange, navigation, sidebarOp
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
-        return <PrincipalDashboard onToggleSidebar={onToggleSidebar} navigation={navigation} />;
+        return <PrincipalDashboard onToggleSidebar={onToggleSidebar} onTabChange={onTabChange} />;
       case 'reports':
-        return <PrincipalReports onToggleSidebar={onToggleSidebar} />;
+        return <PrincipalReports onToggleSidebar={onToggleSidebar} onTabChange={onTabChange} />;
       case 'staff':
         return <PrincipalStaffManagement onToggleSidebar={onToggleSidebar} navigation={navigation} />;
       case 'students':
@@ -76,6 +79,12 @@ function PrincipalSidebarContent({ activeTab, onTabChange, navigation, sidebarOp
         return <PrincipalFinance onToggleSidebar={onToggleSidebar} />;
       case 'settings':
         return <PrincipalSettings onToggleSidebar={onToggleSidebar} />;
+      case 'academic':
+        return <PrincipalAcademicPerformance onToggleSidebar={onToggleSidebar} onBack={() => onTabChange('reports')} />;
+      case 'attendance':
+        return <PrincipalAttendanceAnalytics onToggleSidebar={onToggleSidebar} onBack={() => onTabChange('reports')} />;
+      case 'enrollment':
+        return <PrincipalEnrollmentTrends onToggleSidebar={onToggleSidebar} onBack={() => onTabChange('reports')} />;
       default:
         return <PrincipalDashboard onToggleSidebar={onToggleSidebar} navigation={navigation} />;
     }

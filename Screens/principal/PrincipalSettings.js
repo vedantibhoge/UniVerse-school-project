@@ -20,21 +20,144 @@ const COLORS = {
   green: '#22C55E',
 };
 
+// Principal Profile Data
+const principalData = {
+  name: 'Dr. Rajesh Kumar',
+  email: 'principal@university-school.edu',
+  phone: '+91 98765 43210',
+  joinDate: 'January 2015',
+  qualification: 'Ph.D. in Education',
+  experience: '18 years',
+  department: 'Academic Administration',
+  bio: 'Dedicated educator with extensive experience in school management and academic excellence.',
+};
+
 export default function PrincipalSettings({ onToggleSidebar }) {
   const [notifications, setNotifications] = React.useState(true);
   const [darkMode, setDarkMode] = React.useState(false);
   const [twoFA, setTwoFA] = React.useState(true);
-
-  const handleLogout = () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      { text: 'Logout', onPress: () => {}, style: 'destructive' },
-    ]);
-  };
+  const [activeView, setActiveView] = React.useState('settings');
 
   const handleChangePassword = () => {
     Alert.alert('Change Password', 'Password change feature coming soon');
   };
+
+  const handleProfilePress = () => {
+    setActiveView('profile');
+  };
+
+  const handleEmailPress = () => {
+    Alert.alert('Email Address', `${principalData.email}`);
+  };
+
+  const handleLoginActivityPress = () => {
+    Alert.alert('Login Activity', 'Last login: Today at 10:30 AM\nDevice: Mobile App');
+  };
+
+  const handleHelpCenterPress = () => {
+    Alert.alert('Help Center', 'For support, contact: support@university-school.edu');
+  };
+
+  const handlePrivacyPolicyPress = () => {
+    Alert.alert('Privacy Policy', 'We take your privacy seriously. Your data is encrypted and secure.');
+  };
+
+  const handleTermsPress = () => {
+    Alert.alert('Terms of Service', 'By using this platform, you agree to our terms and conditions.');
+  };
+
+  const handleLanguagePress = () => {
+    Alert.alert('Language', 'Current Language: English\n\nMore languages coming soon.');
+  };
+
+  // Profile Details View
+  if (activeView === 'profile') {
+    return (
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
+        
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity
+            style={styles.hamburger}
+            onPress={() => onToggleSidebar(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.hamburgerIcon}>☰</Text>
+          </TouchableOpacity>
+          <Text style={styles.headerTitle}>Profile</Text>
+          <TouchableOpacity
+            style={styles.hamburger}
+            onPress={() => setActiveView('settings')}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.hamburgerIcon}>✕</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Avatar Section */}
+          <View style={styles.profileHeader}>
+            <Text style={styles.profileAvatar}>👤</Text>
+            <Text style={styles.profileName}>{principalData.name}</Text>
+            <Text style={styles.profileRole}>Principal</Text>
+          </View>
+
+          {/* Profile Details */}
+          <View style={styles.profileCard}>
+            <View style={styles.profileItem}>
+              <Text style={styles.profileItemLabel}>Email</Text>
+              <Text style={styles.profileItemValue}>{principalData.email}</Text>
+            </View>
+
+            <View style={styles.profileDivider} />
+
+            <View style={styles.profileItem}>
+              <Text style={styles.profileItemLabel}>Phone</Text>
+              <Text style={styles.profileItemValue}>{principalData.phone}</Text>
+            </View>
+
+            <View style={styles.profileDivider} />
+
+            <View style={styles.profileItem}>
+              <Text style={styles.profileItemLabel}>Qualification</Text>
+              <Text style={styles.profileItemValue}>{principalData.qualification}</Text>
+            </View>
+
+            <View style={styles.profileDivider} />
+
+            <View style={styles.profileItem}>
+              <Text style={styles.profileItemLabel}>Experience</Text>
+              <Text style={styles.profileItemValue}>{principalData.experience}</Text>
+            </View>
+
+            <View style={styles.profileDivider} />
+
+            <View style={styles.profileItem}>
+              <Text style={styles.profileItemLabel}>Department</Text>
+              <Text style={styles.profileItemValue}>{principalData.department}</Text>
+            </View>
+
+            <View style={styles.profileDivider} />
+
+            <View style={styles.profileItem}>
+              <Text style={styles.profileItemLabel}>Joining Date</Text>
+              <Text style={styles.profileItemValue}>{principalData.joinDate}</Text>
+            </View>
+
+            <View style={styles.profileDivider} />
+
+            <View style={styles.profileItem}>
+              <Text style={styles.profileItemLabel}>Bio</Text>
+              <Text style={styles.profileItemValue}>{principalData.bio}</Text>
+            </View>
+          </View>
+
+          <View style={{ height: 32 }} />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -63,7 +186,7 @@ export default function PrincipalSettings({ onToggleSidebar }) {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account</Text>
 
-          <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.settingItem} onPress={handleProfilePress} activeOpacity={0.7}>
             <View style={styles.settingLeft}>
               <Text style={styles.settingIcon}>👤</Text>
               <View style={styles.settingContent}>
@@ -85,12 +208,12 @@ export default function PrincipalSettings({ onToggleSidebar }) {
             <Text style={styles.settingArrow}>›</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.settingItem} onPress={handleEmailPress} activeOpacity={0.7}>
             <View style={styles.settingLeft}>
               <Text style={styles.settingIcon}>📧</Text>
               <View style={styles.settingContent}>
                 <Text style={styles.settingLabel}>Email Address</Text>
-                <Text style={styles.settingDesc}>principal@school.edu</Text>
+                <Text style={styles.settingDesc}>{principalData.email}</Text>
               </View>
             </View>
             <Text style={styles.settingArrow}>›</Text>
@@ -131,7 +254,7 @@ export default function PrincipalSettings({ onToggleSidebar }) {
             />
           </View>
 
-          <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.settingItem} onPress={handleLoginActivityPress} activeOpacity={0.7}>
             <View style={styles.settingLeft}>
               <Text style={styles.settingIcon}>👁️</Text>
               <View style={styles.settingContent}>
@@ -162,7 +285,7 @@ export default function PrincipalSettings({ onToggleSidebar }) {
             />
           </View>
 
-          <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.settingItem} onPress={handleLanguagePress} activeOpacity={0.7}>
             <View style={styles.settingLeft}>
               <Text style={styles.settingIcon}>🌐</Text>
               <View style={styles.settingContent}>
@@ -175,50 +298,7 @@ export default function PrincipalSettings({ onToggleSidebar }) {
         </View>
 
         {/* Help Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Help & Support</Text>
-
-          <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>❓</Text>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>Help Center</Text>
-                <Text style={styles.settingDesc}>Get help and support</Text>
-              </View>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>📝</Text>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>Privacy Policy</Text>
-                <Text style={styles.settingDesc}>View our privacy policy</Text>
-              </View>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.settingItem} activeOpacity={0.7}>
-            <View style={styles.settingLeft}>
-              <Text style={styles.settingIcon}>⚖️</Text>
-              <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>Terms of Service</Text>
-                <Text style={styles.settingDesc}>View our terms</Text>
-              </View>
-            </View>
-            <Text style={styles.settingArrow}>›</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Danger Zone */}
-        <View style={[styles.section, styles.dangerSection]}>
-          <TouchableOpacity style={styles.dangerButton} onPress={handleLogout} activeOpacity={0.7}>
-            <Text style={styles.dangerIcon}>🚪</Text>
-            <Text style={styles.dangerText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
+        
 
         <View style={{ height: 32 }} />
       </ScrollView>
@@ -285,9 +365,6 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 24,
   },
-  dangerSection: {
-    marginTop: 8,
-  },
   sectionTitle: {
     fontSize: 14,
     fontWeight: 'bold',
@@ -337,23 +414,56 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginLeft: 8,
   },
-  dangerButton: {
-    flexDirection: 'row',
+  profileHeader: {
     alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#FFEBEE',
-    borderRadius: 12,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: '#FFCDD2',
+    marginBottom: 28,
+    paddingTop: 12,
   },
-  dangerIcon: {
-    fontSize: 18,
-    marginRight: 8,
+  profileAvatar: {
+    fontSize: 80,
+    marginBottom: 16,
   },
-  dangerText: {
+  profileName: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.textDark,
+    marginBottom: 4,
+  },
+  profileRole: {
     fontSize: 14,
+    color: COLORS.textMuted,
+    fontWeight: '500',
+  },
+  profileCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 2,
+  },
+  profileItem: {
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+  },
+  profileItemLabel: {
+    fontSize: 12,
     fontWeight: '600',
-    color: '#C62828',
+    color: COLORS.textMuted,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  profileItemValue: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.textDark,
+    lineHeight: 22,
+  },
+  profileDivider: {
+    height: 1,
+    backgroundColor: '#E8ECF5',
   },
 });

@@ -232,7 +232,7 @@ function CircularProgress({ percentage, label }) {
   );
 }
 
-export default function PrincipalDashboard({ onToggleSidebar, navigation }) {
+export default function PrincipalDashboard({ onToggleSidebar, onTabChange }) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor={COLORS.background} />
@@ -275,7 +275,7 @@ export default function PrincipalDashboard({ onToggleSidebar, navigation }) {
         <View style={styles.section}>
           <TouchableOpacity 
             style={styles.staffPerformanceCard}
-            onPress={() => navigation?.navigate('PrincipalStaffManagement')}
+            onPress={() => onTabChange('staff')}
             activeOpacity={0.7}
           >
             <View style={styles.staffCardLeft}>

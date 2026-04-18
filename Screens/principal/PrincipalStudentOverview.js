@@ -824,7 +824,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   metricIcon: {
-    fontSize: 48,
+    fontSize: 40,
     marginBottom: 12,
   },
   metricContentWrapper: {
