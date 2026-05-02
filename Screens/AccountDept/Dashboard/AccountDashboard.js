@@ -343,19 +343,7 @@ export default function FinanceWorkflow({ onLogout }) {
               </View>
             </View>
 
-            <TouchableOpacity
-              style={styles.logoutBtn}
-              onPress={() => {
-                if (typeof onLogout === 'function') {
-                  onLogout();
-                } else {
-                  Alert.alert('Logout', 'Logout action is not configured.');
-                }
-              }}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.logoutBtnText}>Logout</Text>
-            </TouchableOpacity>
+            {/* Logout button removed from dashboard view as requested */}
 
             <View style={{ height: 40 }} />
           </ScrollView>
