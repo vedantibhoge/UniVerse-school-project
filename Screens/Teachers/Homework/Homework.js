@@ -6,6 +6,8 @@ import {
 	ScrollView,
 	TouchableOpacity,
 	SafeAreaView,
+	TextInput,
+	Alert,
 } from 'react-native';
 
 import NewAssignment from './NewAssignment';
@@ -22,6 +24,13 @@ const HOMEWORK_ITEMS = [
 		status: 'ACTIVE',
 		pendingReview: true,
 		dueToday: true,
+		students: [
+			{ name: 'Aarav Mehta', status: 'Completed' },
+			{ name: 'Diya Sharma', status: 'Completed' },
+			{ name: 'Kabir Singh', status: 'Completed' },
+			{ name: 'Ananya Das', status: 'Pending' },
+			{ name: 'Riya Patel', status: 'Pending' },
+		],
 	},
 	{
 		id: 'hw-2',
@@ -34,6 +43,12 @@ const HOMEWORK_ITEMS = [
 		status: 'GRADING',
 		pendingReview: true,
 		dueToday: false,
+		students: [
+			{ name: 'Megha Nair', status: 'Completed' },
+			{ name: 'Ishaan Roy', status: 'Completed' },
+			{ name: 'Nina Thomas', status: 'Pending' },
+			{ name: 'Arjun Sen', status: 'Pending' },
+		],
 	},
 	{
 		id: 'hw-3',
@@ -46,6 +61,12 @@ const HOMEWORK_ITEMS = [
 		status: 'CLOSED',
 		pendingReview: false,
 		dueToday: false,
+		students: [
+			{ name: 'Rohan Verma', status: 'Completed' },
+			{ name: 'Pooja Iyer', status: 'Completed' },
+			{ name: 'Sana Khan', status: 'Completed' },
+			{ name: 'Dev Patel', status: 'Completed' },
+		],
 	},
 	{
 		id: 'hw-4',
@@ -58,6 +79,12 @@ const HOMEWORK_ITEMS = [
 		status: 'ACTIVE',
 		pendingReview: true,
 		dueToday: true,
+		students: [
+			{ name: 'Rahul Jain', status: 'Completed' },
+			{ name: 'Neha Gupta', status: 'Pending' },
+			{ name: 'Kabir Ali', status: 'Pending' },
+			{ name: 'Sara Khan', status: 'Completed' },
+		],
 	},
 	{
 		id: 'hw-5',
@@ -70,6 +97,11 @@ const HOMEWORK_ITEMS = [
 		status: 'ACTIVE',
 		pendingReview: false,
 		dueToday: true,
+		students: [
+			{ name: 'Aanya Singh', status: 'Completed' },
+			{ name: 'Mohan Das', status: 'Pending' },
+			{ name: 'Fahad Khan', status: 'Pending' },
+		],
 	},
 ];
 
@@ -86,7 +118,12 @@ const getRate = (submitted, total) => {
 
 export default function TeacherHomework() {
 	const [showNewAssignment, setShowNewAssignment] = useState(false);
+	const [screenMode, setScreenMode] = useState('dashboard');
+	const [selectedClass, setSelectedClass] = useState(HOMEWORK_ITEMS[0].classInfo);
+	const [selectedHomeworkId, setSelectedHomeworkId] = useState(HOMEWORK_ITEMS[0].id);
 	const [filterMode, setFilterMode] = useState('all');
+	const [gradeDraft, setGradeDraft] = useState({ student: '', grade: '', remark: '' });
+	const [savedGrades, setSavedGrades] = useState([]);
 
 	const pendingCount = useMemo(
 		() => HOMEWORK_ITEMS.filter((item) => item.pendingReview).length,
@@ -98,140 +135,340 @@ export default function TeacherHomework() {
 		[]
 	);
 
+	const classOptions = useMemo(
+		() => [...new Set(HOMEWORK_ITEMS.map((item) => item.classInfo))],
+		[]
+	);
+
+	const selectedHomework = useMemo(
+		() => HOMEWORK_ITEMS.find((item) => item.id === selectedHomeworkId) || HOMEWORK_ITEMS[0],
+		[selectedHomeworkId]
+	);
+
+	const selectedHomeworkStudents = selectedHomework.students || [];
+	const completedCount = selectedHomeworkStudents.filter((student) => student.status === 'Completed').length;
+	const pendingCompletionCount = selectedHomeworkStudents.filter(
+		(student) => student.status !== 'Completed'
+	).length;
+
+	const classHomeworkItems = useMemo(
+		() => HOMEWORK_ITEMS.filter((item) => item.classInfo === selectedClass),
+		[selectedClass]
+	);
+
 	const filteredItems = useMemo(() => {
 		if (filterMode === 'pending') {
-			return HOMEWORK_ITEMS.filter((item) => item.pendingReview);
+			return classHomeworkItems.filter((item) => item.pendingReview);
 		}
 		if (filterMode === 'dueToday') {
-			return HOMEWORK_ITEMS.filter((item) => item.dueToday);
+			return classHomeworkItems.filter((item) => item.dueToday);
 		}
-		return HOMEWORK_ITEMS;
-	}, [filterMode]);
+		return classHomeworkItems;
+	}, [classHomeworkItems, filterMode]);
 
 	const headerLabel =
 		filterMode === 'pending'
-			? 'Showing Pending Reviews'
+			? 'Showing pending reviews for the selected class'
 			: filterMode === 'dueToday'
-			? 'Showing Due Today'
-			: 'Showing All Assignments';
+			? 'Showing due-today work for the selected class'
+			: 'Showing all assignments for the selected class';
+
+	const openHomeworkScreen = () => {
+		setShowNewAssignment(true);
+	};
+
+	const handleSaveGrade = () => {
+		if (!gradeDraft.student.trim() || !gradeDraft.grade.trim()) {
+			Alert.alert('Missing Details', 'Please add the student name and grade.');
+			return;
+		}
+
+		setSavedGrades((prev) => [
+			{
+				id: `${Date.now()}`,
+				homeworkTitle: selectedHomework.title,
+				student: gradeDraft.student.trim(),
+				grade: gradeDraft.grade.trim(),
+				remark: gradeDraft.remark.trim(),
+			},
+			...prev,
+		]);
+		setGradeDraft({ student: '', grade: '', remark: '' });
+		Alert.alert('Saved', 'Grade added successfully.');
+	};
+
+	const heroActions = [
+		{ key: 'homework', label: 'Homework', hint: 'Add assignment' },
+		{ key: 'list', label: 'View List', hint: 'Class homework' },
+		{ key: 'submissions', label: 'View Submissions', hint: 'Due date & status' },
+		{ key: 'grades', label: 'Add Grades', hint: 'Mark student work' },
+	];
+
+	const openMode = (mode) => {
+		setScreenMode(mode);
+	};
 
 	if (showNewAssignment) {
 		return <NewAssignment onBack={() => setShowNewAssignment(false)} />;
 	}
 
-	return (
-		<SafeAreaView style={styles.container}>
-			<ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-				<View style={styles.headerRow}>
-					<View>
-						<Text style={styles.title}>Homework Management</Text>
-						<Text style={styles.subtitle}>Track, manage, and review all active student assignments.</Text>
-					</View>
-					<TouchableOpacity
-						style={styles.newButton}
-						activeOpacity={0.85}
-						onPress={() => setShowNewAssignment(true)}
-					>
-						<Text style={styles.newButtonText}>⊕ New Assignment</Text>
-					</TouchableOpacity>
-				</View>
+	if (screenMode === 'list') {
+		return (
+			<SafeAreaView style={styles.container}>
+				<ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+					<View style={styles.pageShell}>
+						<View style={styles.pageHeaderRow}>
+							<TouchableOpacity style={styles.backButton} activeOpacity={0.85} onPress={() => openMode('dashboard')}>
+								<Text style={styles.backButtonText}>← Back</Text>
+							</TouchableOpacity>
+							<View>
+								<Text style={styles.sectionTitle}>Homework List</Text>
+								<Text style={styles.sectionSubtitle}>Open the class homework list in its own page.</Text>
+							</View>
+						</View>
 
-				<View style={styles.topCardsRow}>
-					<TouchableOpacity
-						style={[styles.topCard, filterMode === 'pending' && styles.topCardActive]}
-						activeOpacity={0.9}
-						onPress={() => setFilterMode('pending')}
-					>
-						<Text style={styles.topCardValue}>{pendingCount}</Text>
-						<Text style={styles.topCardLabel}>PENDING REVIEWS</Text>
-						<Text style={styles.topCardHint}>Tap to show pending homework</Text>
-					</TouchableOpacity>
-
-					<TouchableOpacity
-						style={[styles.topCard, filterMode === 'dueToday' && styles.topCardActive]}
-						activeOpacity={0.9}
-						onPress={() => setFilterMode('dueToday')}
-					>
-						<Text style={styles.topCardValue}>{dueTodayCount}</Text>
-						<Text style={styles.topCardLabel}>DUE TODAY</Text>
-						<Text style={styles.topCardHint}>Tap to show due-today list</Text>
-					</TouchableOpacity>
-				</View>
-
-				<View style={styles.filterRow}>
-					<TouchableOpacity style={styles.filterChip} activeOpacity={0.85} onPress={() => setFilterMode('all')}>
-						<Text style={[styles.filterChipText, filterMode === 'all' && styles.filterChipTextActive]}>All</Text>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={styles.filterChip}
-						activeOpacity={0.85}
-						onPress={() => setFilterMode('pending')}
-					>
-						<Text style={[styles.filterChipText, filterMode === 'pending' && styles.filterChipTextActive]}>
-							Pending
-						</Text>
-					</TouchableOpacity>
-					<TouchableOpacity
-						style={styles.filterChip}
-						activeOpacity={0.85}
-						onPress={() => setFilterMode('dueToday')}
-					>
-						<Text style={[styles.filterChipText, filterMode === 'dueToday' && styles.filterChipTextActive]}>
-							Due Today
-						</Text>
-					</TouchableOpacity>
-				</View>
-
-				<Text style={styles.activeFilterLabel}>{headerLabel}</Text>
-
-				<View style={styles.tableWrap}>
-					<View style={styles.tableHeader}>
-						<Text style={[styles.tableHeaderText, styles.colTitle]}>HOMEWORK TITLE</Text>
-						<Text style={[styles.tableHeaderText, styles.colClass]}>CLASS / SUBJECT</Text>
-						<Text style={[styles.tableHeaderText, styles.colTimeline]}>TIMELINE</Text>
-						<Text style={[styles.tableHeaderText, styles.colRate]}>RATE</Text>
-						<Text style={[styles.tableHeaderText, styles.colStatus]}>STATUS</Text>
-					</View>
-
-					{filteredItems.map((item) => {
-						const rate = getRate(item.submitted, item.total);
-						return (
-							<View key={item.id} style={styles.tableRow}>
-								<View style={styles.colTitle}>
-									<Text style={styles.mainText}>{item.title}</Text>
-									<Text style={styles.subText}>Topic: {item.subject}</Text>
+						<View style={styles.sectionCard}>
+							<View style={styles.sectionHeader}>
+								<View>
+									<Text style={styles.sectionTitle}>{headerLabel}</Text>
+									<Text style={styles.sectionSubtitle}>Pick a class and view the homework list with completion status.</Text>
 								</View>
-
-								<View style={styles.colClass}>
-									<Text style={styles.mainText}>{item.classInfo}</Text>
-									<Text style={styles.subText}>{item.subject}</Text>
-								</View>
-
-								<View style={styles.colTimeline}>
-									<Text style={styles.mainText}>{item.timeline}</Text>
-								</View>
-
-								<View style={styles.colRate}>
-									<Text style={styles.mainText}>{item.submitted}/{item.total}</Text>
-									<View style={styles.rateTrack}>
-										<View style={[styles.rateFill, { width: `${rate}%` }]} />
-									</View>
-								</View>
-
-								<View style={styles.colStatus}>
-									<View style={[styles.statusPill, { backgroundColor: statusStyle[item.status].bg }]}>
-										<Text style={[styles.statusText, { color: statusStyle[item.status].color }]}>{item.status}</Text>
-									</View>
+								<View style={styles.chipRow}>
+									{classOptions.map((className) => (
+										<TouchableOpacity
+											key={className}
+											style={[styles.chip, selectedClass === className && styles.chipActive]}
+											activeOpacity={0.85}
+											onPress={() => setSelectedClass(className)}
+										>
+											<Text style={[styles.chipText, selectedClass === className && styles.chipTextActive]}>{className}</Text>
+										</TouchableOpacity>
+									))}
 								</View>
 							</View>
-						);
-					})}
 
-					{!filteredItems.length && (
-						<View style={styles.emptyState}>
-							<Text style={styles.emptyStateText}>No assignments found for this filter.</Text>
+							<View style={styles.filterRow}>
+								{['all', 'pending', 'dueDate'].map((mode) => (
+									<TouchableOpacity
+										key={mode}
+										style={[styles.filterChip, filterMode === mode && styles.filterChipActive]}
+										activeOpacity={0.85}
+										onPress={() => setFilterMode(mode)}
+									>
+										<Text style={[styles.filterChipText, filterMode === mode && styles.filterChipTextActive]}>
+											{mode === 'all' ? 'All' : mode === 'pending' ? 'Pending' : 'Due Date'}
+										</Text>
+									</TouchableOpacity>
+								))}
+							</View>
+
+							{filterMode === 'dueDate' ? (
+								<View style={styles.detailCard}>
+									<Text style={styles.detailTitle}>Due Date</Text>
+									<Text style={styles.detailLine}>{selectedHomework.timeline}</Text>
+									<Text style={[styles.detailLine, {marginTop: 16}]}>Homework: {selectedHomework.title}</Text>
+									<Text style={styles.detailLine}>Class: {selectedHomework.classInfo}</Text>
+									<Text style={styles.detailLine}>Status: {selectedHomework.status}</Text>
+								</View>
+							) : (
+								<View>
+									<View style={styles.detailCard}>
+										<Text style={styles.detailTitle}>{selectedHomework.title}</Text>
+										<Text style={styles.detailLine}>Class: {selectedHomework.classInfo}</Text>
+										<Text style={styles.detailLine}>Subject: {selectedHomework.subject}</Text>
+										<Text style={styles.detailLine}>Due date: {selectedHomework.timeline}</Text>
+									</View>
+
+									<View style={styles.studentList}>
+										<Text style={{fontSize: 14, fontWeight: '900', color: '#0F172A', marginBottom: 10, marginTop: 8}}>
+											{filterMode === 'all' ? 'All Students' : 'Students with Pending Homework'}
+										</Text>
+										{selectedHomeworkStudents
+											.filter((student) => filterMode === 'all' || student.status !== 'Completed')
+											.map((student, index) => (
+												<View key={`${student.name}-${index}`} style={styles.studentRow}>
+													<Text style={styles.studentName}>{student.name}</Text>
+													<View
+														style={[
+															styles.studentStatusPill,
+															student.status === 'Completed' ? styles.studentStatusDone : styles.studentStatusPending,
+														]}
+													>
+														<Text style={styles.studentStatusText}>{student.status}</Text>
+													</View>
+												</View>
+											))}
+									</View>
+								</View>
+							)}
 						</View>
-					)}
+					</View>
+				</ScrollView>
+			</SafeAreaView>
+		);
+	}
+
+	if (screenMode === 'submissions') {
+		return (
+			<SafeAreaView style={styles.container}>
+				<ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+					<View style={styles.pageShell}>
+						<View style={styles.pageHeaderRow}>
+							<TouchableOpacity style={styles.backButton} activeOpacity={0.85} onPress={() => openMode('dashboard')}>
+								<Text style={styles.backButtonText}>← Back</Text>
+							</TouchableOpacity>
+							<Text style={styles.sectionTitle}>View Submissions</Text>
+						</View>
+						<View style={styles.sectionCard}>
+							<Text style={styles.sectionSubtitle}>Select a homework below to see the due date and submission status.</Text>
+							<View style={styles.homeworkPickerRow}>
+								{HOMEWORK_ITEMS.map((item) => (
+									<TouchableOpacity
+										key={item.id}
+										style={[styles.homeworkPicker, selectedHomeworkId === item.id && styles.homeworkPickerActive]}
+										activeOpacity={0.85}
+										onPress={() => setSelectedHomeworkId(item.id)}
+									>
+										<Text style={[styles.homeworkPickerText, selectedHomeworkId === item.id && styles.homeworkPickerTextActive]}>{item.title}</Text>
+									</TouchableOpacity>
+								))}
+							</View>
+							<View style={styles.detailCard}>
+								<Text style={styles.detailTitle}>{selectedHomework.title}</Text>
+								<Text style={styles.detailLine}>Class: {selectedHomework.classInfo}</Text>
+								<Text style={styles.detailLine}>Subject: {selectedHomework.subject}</Text>
+								<Text style={styles.detailLine}>Due date: {selectedHomework.timeline}</Text>
+								<Text style={styles.detailLine}>Submissions: {selectedHomework.submitted}/{selectedHomework.total}</Text>
+								<Text style={styles.detailLine}>Review status: {selectedHomework.pendingReview ? 'Pending review' : 'Reviewed'}</Text>
+							</View>
+						</View>
+					</View>
+				</ScrollView>
+			</SafeAreaView>
+		);
+	}
+
+	if (screenMode === 'grades') {
+		return (
+			<SafeAreaView style={styles.container}>
+				<ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+					<View style={styles.pageShell}>
+						<View style={styles.pageHeaderRow}>
+							<TouchableOpacity style={styles.backButton} activeOpacity={0.85} onPress={() => openMode('dashboard')}>
+								<Text style={styles.backButtonText}>← Back</Text>
+							</TouchableOpacity>
+							<Text style={styles.sectionTitle}>Add Grades</Text>
+						</View>
+						<View style={styles.sectionCard}>
+							<Text style={styles.sectionSubtitle}>Enter student marks for the selected homework.</Text>
+							<View style={styles.detailCard}>
+								<Text style={styles.detailLine}>Homework: {selectedHomework.title}</Text>
+								<Text style={styles.detailLine}>Due date: {selectedHomework.timeline}</Text>
+
+								<Text style={styles.label}>Student Name</Text>
+								<TextInput
+									style={styles.input}
+									value={gradeDraft.student}
+									onChangeText={(text) => setGradeDraft((prev) => ({ ...prev, student: text }))}
+									placeholder="Enter student name"
+									placeholderTextColor="#94A3B8"
+								/>
+
+								<Text style={styles.label}>Grade</Text>
+								<TextInput
+									style={styles.input}
+									value={gradeDraft.grade}
+									onChangeText={(text) => setGradeDraft((prev) => ({ ...prev, grade: text }))}
+									placeholder="Enter grade, e.g. 18/20"
+									placeholderTextColor="#94A3B8"
+								/>
+
+								<Text style={styles.label}>Remark</Text>
+								<TextInput
+									style={[styles.input, styles.textArea]}
+									value={gradeDraft.remark}
+									onChangeText={(text) => setGradeDraft((prev) => ({ ...prev, remark: text }))}
+									placeholder="Optional note"
+									placeholderTextColor="#94A3B8"
+									multiline
+								/>
+
+								<TouchableOpacity style={styles.primaryButton} activeOpacity={0.88} onPress={handleSaveGrade}>
+									<Text style={styles.primaryButtonText}>Save Grade</Text>
+								</TouchableOpacity>
+							</View>
+
+							<View style={styles.savedList}>
+								<Text style={styles.savedListTitle}>Saved Grades</Text>
+								{savedGrades.length ? (
+									savedGrades.map((entry) => (
+										<View key={entry.id} style={styles.savedItem}>
+											<Text style={styles.savedItemTitle}>{entry.student}</Text>
+											<Text style={styles.savedItemMeta}>{entry.homeworkTitle}</Text>
+											<Text style={styles.savedItemMeta}>Grade: {entry.grade}</Text>
+											{entry.remark ? <Text style={styles.savedItemMeta}>{entry.remark}</Text> : null}
+										</View>
+									))
+								) : (
+									<Text style={styles.emptyStateText}>No grades saved yet.</Text>
+								)}
+							</View>
+						</View>
+					</View>
+				</ScrollView>
+			</SafeAreaView>
+		);
+	}
+
+	return (
+		<SafeAreaView style={styles.container}>
+			<ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+				<View style={styles.pageShell}>
+					<View style={styles.heroCard}>
+						<View style={styles.heroTopRow}>
+							<View style={styles.heroCopy}>
+								<Text style={styles.kicker}>Teacher Workspace</Text>
+								<Text style={styles.title}>Homework Management</Text>
+								<Text style={styles.subtitle}>
+									Create assignments, review submissions, assign grades, and keep every class in one clean view.
+								</Text>
+							</View>
+							<View style={styles.heroStatsRow}>
+								<View style={styles.heroStat}>
+									<Text style={styles.heroStatValue}>{HOMEWORK_ITEMS.length}</Text>
+									<Text style={styles.heroStatLabel}>Assignments</Text>
+								</View>
+								<View style={styles.heroStat}>
+									<Text style={styles.heroStatValue}>{pendingCount}</Text>
+									<Text style={styles.heroStatLabel}>Pending</Text>
+								</View>
+								<View style={styles.heroStat}>
+									<Text style={styles.heroStatValue}>{dueTodayCount}</Text>
+									<Text style={styles.heroStatLabel}>Due Today</Text>
+								</View>
+							</View>
+						</View>
+
+						<View style={styles.actionGrid}>
+							{heroActions.map((action) => (
+								<TouchableOpacity
+									key={action.key}
+									style={styles.actionButton}
+									activeOpacity={0.88}
+									onPress={() => {
+										if (action.key === 'homework') {
+											openHomeworkScreen();
+											return;
+										}
+										openMode(action.key);
+									}}
+								>
+									<Text style={styles.actionButtonLabel}>{action.label}</Text>
+									<Text style={styles.actionButtonHint}>{action.hint}</Text>
+								</TouchableOpacity>
+							))}
+						</View>
+					</View>
 				</View>
 			</ScrollView>
 		</SafeAreaView>
@@ -239,94 +476,231 @@ export default function TeacherHomework() {
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, backgroundColor: '#F4F6FA' },
-	content: { flex: 1, padding: 14 },
-	headerRow: {
+	container: { flex: 1, backgroundColor: '#F3F7FC' },
+	content: { padding: 14, paddingBottom: 24 },
+	pageShell: {
+		width: '100%',
+		maxWidth: 1180,
+		alignSelf: 'center',
+	},
+	pageHeaderRow: {
+		flexDirection: 'row',
+		alignItems: 'flex-start',
+		gap: 12,
+		marginBottom: 16,
+	},
+	backButton: {
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		backgroundColor: '#F3F7FC',
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: '#DCE6F5',
+	},
+	backButtonText: {
+		fontSize: 14,
+		fontWeight: '700',
+		color: '#2563EB',
+	},
+	heroCard: {
+		backgroundColor: '#FFFFFF',
+		borderRadius: 20,
+		padding: 18,
+		borderWidth: 1,
+		borderColor: '#E6ECF5',
+		marginBottom: 14,
+		shadowColor: '#0F172A',
+		shadowOffset: { width: 0, height: 6 },
+		shadowOpacity: 0.06,
+		shadowRadius: 16,
+		elevation: 2,
+	},
+	heroTopRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, justifyContent: 'space-between' },
+	heroCopy: { flex: 1, minWidth: 280 },
+	kicker: { fontSize: 11, color: '#2563EB', fontWeight: '800', letterSpacing: 0.8, textTransform: 'uppercase' },
+	title: { fontSize: 32, lineHeight: 38, fontWeight: '900', color: '#0F172A', marginTop: 6 },
+	subtitle: { fontSize: 13, lineHeight: 20, color: '#64748B', marginTop: 8, maxWidth: 640 },
+	heroStatsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+	heroStat: {
+		minWidth: 92,
+		paddingVertical: 12,
+		paddingHorizontal: 14,
+		borderRadius: 14,
+		backgroundColor: '#F8FBFF',
+		borderWidth: 1,
+		borderColor: '#E5EEF9',
+		alignItems: 'center',
+	},
+	heroStatValue: { fontSize: 24, fontWeight: '900', color: '#0F172A' },
+	heroStatLabel: { fontSize: 11, fontWeight: '700', color: '#64748B', marginTop: 2 },
+	actionGrid: { flexDirection: 'column', gap: 10, marginTop: 16 },
+	actionButton: {
+		backgroundColor: '#F8FBFF',
+		borderRadius: 14,
+		padding: 14,
+		borderWidth: 1,
+		borderColor: '#DCE6F5',
+	},
+	actionButtonActive: { backgroundColor: '#EAF2FF', borderColor: '#2563EB' },
+	actionButtonLabel: { fontSize: 14, color: '#0F172A', fontWeight: '800' },
+	actionButtonHint: { fontSize: 11, color: '#64748B', marginTop: 4 },
+	sectionCard: {
+		backgroundColor: '#FFFFFF',
+		borderRadius: 18,
+		padding: 16,
+		borderWidth: 1,
+		borderColor: '#E6ECF5',
+		marginBottom: 14,
+	},
+	sectionHeader: {
 		flexDirection: 'row',
 		justifyContent: 'space-between',
 		alignItems: 'flex-start',
-		marginBottom: 14,
-		gap: 10,
+		gap: 12,
+		flexWrap: 'wrap',
 	},
-	title: { fontSize: 34, fontWeight: '800', color: '#1A1A2E' },
-	subtitle: { fontSize: 12, color: '#6B7280', marginTop: 4 },
-	newButton: {
-		backgroundColor: '#1D5FD1',
-		borderRadius: 10,
+	sectionTitle: { fontSize: 18, fontWeight: '900', color: '#0F172A' },
+	sectionSubtitle: { fontSize: 12, color: '#64748B', marginTop: 4, maxWidth: 680 },
+	smallPrimaryButton: {
+		backgroundColor: '#2563EB',
+		borderRadius: 12,
 		paddingHorizontal: 14,
 		paddingVertical: 10,
-		shadowColor: '#1D5FD1',
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.25,
-		shadowRadius: 4,
-		elevation: 3,
 	},
-	newButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '700' },
-	topCardsRow: { flexDirection: 'row', gap: 12, marginBottom: 12 },
-	topCard: {
-		flex: 1,
-		backgroundColor: '#FFFFFF',
-		borderRadius: 12,
+	smallPrimaryButtonText: { color: '#FFFFFF', fontSize: 12, fontWeight: '800' },
+	quickStatsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
+	quickStatCard: {
+		flexGrow: 1,
+		flexBasis: '30%',
+		minWidth: 160,
+		backgroundColor: '#F8FBFF',
+		borderRadius: 14,
 		padding: 14,
 		borderWidth: 1,
-		borderColor: '#E7EAF0',
+		borderColor: '#E2EAF6',
 	},
-	topCardActive: { borderColor: '#1D5FD1', backgroundColor: '#F2F7FF' },
-	topCardValue: { fontSize: 38, fontWeight: '800', color: '#1A1A2E' },
-	topCardLabel: { fontSize: 11, color: '#7D8696', fontWeight: '700', marginTop: 2 },
-	topCardHint: { fontSize: 10, color: '#9AA3B2', marginTop: 8 },
-	filterRow: { flexDirection: 'row', gap: 8, marginBottom: 10 },
-	filterChip: {
-		backgroundColor: '#FFFFFF',
-		borderWidth: 1,
-		borderColor: '#E6EAF2',
-		borderRadius: 10,
+	quickStatLabel: { fontSize: 12, color: '#64748B', fontWeight: '700' },
+	quickStatValue: { fontSize: 15, color: '#0F172A', fontWeight: '900', marginTop: 6 },
+	chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
+	chip: {
 		paddingHorizontal: 12,
 		paddingVertical: 8,
+		borderRadius: 999,
+		backgroundColor: '#F7FAFF',
+		borderWidth: 1,
+		borderColor: '#D7E2F1',
 	},
-	filterChipText: { fontSize: 12, fontWeight: '600', color: '#64748B' },
-	filterChipTextActive: { color: '#1D5FD1' },
-	activeFilterLabel: { fontSize: 12, color: '#64748B', fontWeight: '700', marginBottom: 8 },
-	tableWrap: {
+	chipActive: { backgroundColor: '#EAF2FF', borderColor: '#2563EB' },
+	chipText: { fontSize: 12, color: '#64748B', fontWeight: '700' },
+	chipTextActive: { color: '#1D4ED8' },
+	filterRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
+	filterChip: {
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: '#DFE7F2',
+		backgroundColor: '#FFFFFF',
+	},
+	filterChipActive: { borderColor: '#2563EB', backgroundColor: '#EEF5FF' },
+	filterChipText: { fontSize: 12, color: '#64748B', fontWeight: '700' },
+	filterChipTextActive: { color: '#1D4ED8' },
+	cardList: { marginTop: 14, gap: 10 },
+	homeworkCard: {
+		backgroundColor: '#FDFEFF',
+		borderRadius: 16,
+		padding: 14,
+		borderWidth: 1,
+		borderColor: '#E3EAF5',
+	},
+	homeworkTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 },
+	homeworkTitle: { fontSize: 15, fontWeight: '900', color: '#0F172A' },
+	homeworkMeta: { fontSize: 12, color: '#64748B', marginTop: 4 },
+	metaRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
+	metaChip: {
+		fontSize: 11,
+		color: '#475569',
+		backgroundColor: '#F3F7FC',
+		paddingHorizontal: 10,
+		paddingVertical: 6,
+		borderRadius: 999,
+		overflow: 'hidden',
+	},
+	rateTrack: { marginTop: 12, height: 6, backgroundColor: '#E7EDF6', borderRadius: 999, overflow: 'hidden' },
+	rateFill: { height: '100%', backgroundColor: '#2563EB' },
+	statusPill: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+	statusText: { fontSize: 10, fontWeight: '800' },
+	emptyState: { paddingVertical: 22, alignItems: 'center' },
+	emptyStateText: { color: '#64748B', fontSize: 12 },
+	homeworkPickerRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 14 },
+	homeworkPicker: {
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: '#DFE7F2',
+		backgroundColor: '#FFFFFF',
+	},
+	homeworkPickerActive: { backgroundColor: '#EAF2FF', borderColor: '#2563EB' },
+	homeworkPickerText: { fontSize: 12, color: '#64748B', fontWeight: '700' },
+	homeworkPickerTextActive: { color: '#1D4ED8' },
+	detailCard: {
+		marginTop: 14,
+		backgroundColor: '#F8FBFF',
+		borderRadius: 16,
+		padding: 14,
+		borderWidth: 1,
+		borderColor: '#DFE7F2',
+	},
+	detailTitle: { fontSize: 16, fontWeight: '900', color: '#0F172A', marginBottom: 8 },
+	detailLine: { fontSize: 12, color: '#334155', marginTop: 6, lineHeight: 18 },
+	label: { fontSize: 12, color: '#475569', fontWeight: '800', marginTop: 12, marginBottom: 6 },
+	input: {
+		backgroundColor: '#FFFFFF',
+		borderWidth: 1,
+		borderColor: '#D8E2F0',
+		borderRadius: 12,
+		paddingHorizontal: 12,
+		paddingVertical: 11,
+		fontSize: 13,
+		color: '#0F172A',
+	},
+	textArea: { minHeight: 88, textAlignVertical: 'top' },
+	primaryButton: {
+		marginTop: 14,
+		backgroundColor: '#2563EB',
+		borderRadius: 12,
+		paddingVertical: 12,
+		alignItems: 'center',
+	},
+	primaryButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
+	savedList: { marginTop: 14 },
+	savedListTitle: { fontSize: 14, fontWeight: '900', color: '#0F172A', marginBottom: 10 },
+	savedItem: {
 		backgroundColor: '#FFFFFF',
 		borderRadius: 14,
+		padding: 12,
 		borderWidth: 1,
-		borderColor: '#E7EAF0',
-		overflow: 'hidden',
+		borderColor: '#E3EAF5',
+		marginBottom: 10,
 	},
-	tableHeader: {
+	savedItemTitle: { fontSize: 13, fontWeight: '900', color: '#0F172A' },
+	savedItemMeta: { fontSize: 11, color: '#64748B', marginTop: 4, lineHeight: 16 },
+	studentList: { marginTop: 12, gap: 8 },
+	studentRow: {
 		flexDirection: 'row',
-		backgroundColor: '#F7F9FC',
-		paddingHorizontal: 10,
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		backgroundColor: '#FFFFFF',
+		borderRadius: 12,
+		paddingHorizontal: 12,
 		paddingVertical: 10,
-		borderBottomWidth: 1,
-		borderBottomColor: '#E7EAF0',
+		borderWidth: 1,
+		borderColor: '#E3EAF5',
 	},
-	tableHeaderText: { fontSize: 9, color: '#8E96A3', fontWeight: '700' },
-	tableRow: {
-		flexDirection: 'row',
-		paddingHorizontal: 10,
-		paddingVertical: 12,
-		borderBottomWidth: 1,
-		borderBottomColor: '#EEF2F7',
-	},
-	colTitle: { flex: 2.2, paddingRight: 8 },
-	colClass: { flex: 1.5, paddingRight: 8 },
-	colTimeline: { flex: 1.3, paddingRight: 8 },
-	colRate: { flex: 1.2, paddingRight: 8 },
-	colStatus: { flex: 1, alignItems: 'flex-start' },
-	mainText: { fontSize: 11, color: '#1F2937', fontWeight: '700' },
-	subText: { fontSize: 10, color: '#8B95A5', marginTop: 2 },
-	rateTrack: {
-		marginTop: 4,
-		height: 5,
-		backgroundColor: '#E6EBF2',
-		borderRadius: 4,
-		overflow: 'hidden',
-	},
-	rateFill: { height: '100%', backgroundColor: '#1D5FD1' },
-	statusPill: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 },
-	statusText: { fontSize: 9, fontWeight: '700' },
-	emptyState: { padding: 18, alignItems: 'center' },
-	emptyStateText: { color: '#8B95A5', fontSize: 12 },
+	studentName: { fontSize: 12, color: '#0F172A', fontWeight: '700', flex: 1, paddingRight: 10 },
+	studentStatusPill: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999 },
+	studentStatusDone: { backgroundColor: '#E7F7EE' },
+	studentStatusPending: { backgroundColor: '#FFF3E8' },
+	studentStatusText: { fontSize: 10, fontWeight: '800', color: '#0F172A' },
 });
