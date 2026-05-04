@@ -31,9 +31,9 @@ const C = {
   card: '#FFFFFF',
 };
 
-function StatCard({ label, value, sub, delta, deltaPositive }) {
+function StatCard({ label, value, sub, delta, deltaPositive, onPress }) {
   return (
-    <View style={styles.statCard}>
+    <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={styles.statCard}>
       <View style={styles.statTop}>
         <Text style={styles.statLabel}>{label}</Text>
         {delta ? (
@@ -44,7 +44,7 @@ function StatCard({ label, value, sub, delta, deltaPositive }) {
       </View>
       <Text style={styles.statValue}>{value}</Text>
       {sub ? <Text style={styles.statSub}>{sub}</Text> : null}
-    </View>
+    </TouchableOpacity>
   );
 }
 
@@ -88,123 +88,364 @@ function FunnelRow({ label, count, pct }) {
   );
 }
 
-function DirectorAnalyticsContent() {
-  const [activeTab, setActiveTab] = useState('overview');
-  const tabs = ['overview', 'enrollment', 'admissions', 'reports'];
+const DETAIL_PAGES = {
+  overview: {
+    title: "Director's Student Analytics",
+    subtitle: 'Institutional Performance & Enrollment Insights · Overview',
+    summary: [
+      { label: 'Growth', value: '34.2%' },
+      { label: 'Enrollment', value: '8,420' },
+      { label: 'Yield', value: '5%' },
+    ],
+    items: [
+      'Enrollment trend is moving upward across core programs.',
+      'Admissions momentum is strongest in the current cycle.',
+      'Use the scrollable sections below to inspect the detail pages.',
+    ],
+  },
+  enrollment: {
+    title: 'Enrollment',
+    subtitle: 'Enrollment movement and departmental growth patterns.',
+    summary: [
+      { label: 'Current Enrollment', value: '8,420' },
+      { label: 'Growth Rate', value: '34.2%' },
+      { label: 'Target', value: '10,000' },
+    ],
+    items: [
+      'STEM enrollment is outperforming the previous term.',
+      'Humanities growth remains steady across the last six months.',
+      'Use the chart section for monthly comparison.',
+    ],
+  },
+  admissions: {
+    title: 'Admissions',
+    subtitle: 'Applications, interviews, and acceptance pipeline.',
+    summary: [
+      { label: 'Applications', value: '15,302' },
+      { label: 'Accepted', value: '2,890' },
+      { label: 'Conversion', value: '18.5%' },
+    ],
+    items: [
+      'Interview volume is highest in the current quarter.',
+      'Acceptance rate is stable and within target range.',
+      'This page can be used to track funnel changes over time.',
+    ],
+  },
+  reports: {
+    title: 'Reports',
+    subtitle: 'Executive snapshots and recent transitions.',
+    summary: [
+      { label: 'Records', value: '3' },
+      { label: 'Spotlight', value: '1' },
+      { label: 'Status', value: 'Active' },
+    ],
+    items: [
+      'Recent records are available for review on this page.',
+      'International spotlight data supports board reporting.',
+      'The transitions feed below remains scrollable and current.',
+    ],
+  },
+  studentGrowth: {
+    title: 'Student Growth',
+    subtitle: 'Growth overview with month-by-month performance.',
+    summary: [
+      { label: 'Growth', value: '34.2%' },
+      { label: 'Delta', value: '+12.4%' },
+      { label: 'Health', value: 'Strong' },
+    ],
+    items: [
+      'Student growth is up versus the previous period.',
+      'Use the enrollment chart and funnel for deeper context.',
+      'Scroll for additional admissions and transition details.',
+    ],
+  },
+  currentEnrollment: {
+    title: 'Current Enrollment',
+    subtitle: 'Enrollment totals and target tracking.',
+    summary: [
+      { label: 'Enrollment', value: '8,420' },
+      { label: 'Target', value: '10,000' },
+      { label: 'Gap', value: '1,580' },
+    ],
+    items: [
+      'Current enrollment is healthy and growing.',
+      'The target gap can be tracked by department below.',
+      'This is a scrollable detail page for enrollment data.',
+    ],
+  },
+  dropoutRate: {
+    title: 'Dropout Rate',
+    subtitle: 'Retention health and dropout movement.',
+    summary: [
+      { label: 'Dropout Rate', value: '2.1%' },
+      { label: 'Retention', value: '97.9%' },
+      { label: 'Change', value: '-0.8%' },
+    ],
+    items: [
+      'Retention is excellent across the current term.',
+      'Dropout risk remains low in all major cohorts.',
+      'Scroll for the recent transitions list.',
+    ],
+  },
+  funnelConversion: {
+    title: 'Funnel Conversion',
+    subtitle: 'Inquiry-to-admission conversion detail.',
+    summary: [
+      { label: 'Conversion', value: '18.5%' },
+      { label: 'Accepted', value: '2,890' },
+      { label: 'Applications', value: '15,302' },
+    ],
+    items: [
+      'Admissions conversion is consistent with the expected band.',
+      'High-intent applicants are moving through the funnel faster.',
+      'The funnel chart below is intended for deeper review.',
+    ],
+  },
+  enrollmentDynamics: {
+    title: 'Enrollment Dynamics',
+    subtitle: 'Comparative growth analysis by department.',
+    summary: [
+      { label: 'STEM', value: '60%' },
+      { label: 'Humanities', value: '40%' },
+      { label: 'Status', value: 'Balanced' },
+    ],
+    items: [
+      'STEM continues to lead growth trends.',
+      'Humanities remains stable in conversion.',
+      'Compare the monthly bars for deeper movement insight.',
+    ],
+  },
+  admissionFunnel: {
+    title: 'Admission Funnel',
+    subtitle: 'Scrollable funnel breakdown from inquiry to accepted.',
+    summary: [
+      { label: 'Inquiries', value: '42,105' },
+      { label: 'Applications', value: '15,302' },
+      { label: 'Accepted', value: '2,890' },
+    ],
+    items: [
+      'The funnel is strongest at the inquiry stage.',
+      'Acceptance remains close to the expected range.',
+      'Scroll to review yield and acceptance metrics.',
+    ],
+  },
+  internationalSpotlight: {
+    title: 'International Spotlight',
+    subtitle: 'Regional application trends and key insight summary.',
+    summary: [
+      { label: 'Asia', value: '27%' },
+      { label: 'North America', value: '45%' },
+      { label: 'Europe', value: '28%' },
+    ],
+    items: [
+      'Southeast Asia applications increased this quarter.',
+      'North America remains the largest source region.',
+      'Regional mix can be reviewed in the list below.',
+    ],
+  },
+  recentTransitions: {
+    title: 'Recent Transitions',
+    subtitle: 'New admissions and withdrawal feed, scrollable.',
+    summary: [
+      { label: 'Records', value: '3' },
+      { label: 'Admissions', value: '2' },
+      { label: 'Withdrawals', value: '1' },
+    ],
+    items: [
+      'Julianna Dorsey joined Computer Science today.',
+      'Marcus Krensky withdrew from Economics yesterday.',
+      'Elena Luminaire was admitted into Fine Arts.',
+    ],
+  },
+};
 
+function DetailPage({ page, onBack, children }) {
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
-      <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>Director's Student Analytics</Text>
-          <Text style={styles.headerSub}>Institutional Performance & Enrollment Insights · AY 2024/25</Text>
+      <TouchableOpacity activeOpacity={0.8} onPress={onBack} style={styles.backButton}>
+        <Text style={styles.backButtonText}>← Back</Text>
+      </TouchableOpacity>
+
+      <View style={styles.detailCard}>
+        <Text style={styles.detailOverline}>Director Analytics</Text>
+        <Text style={styles.detailTitle}>{page.title}</Text>
+        <Text style={styles.detailSubtitle}>{page.subtitle}</Text>
+        <View style={styles.summaryGrid}>
+          {page.summary.map((item) => (
+            <View key={item.label} style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>{item.label}</Text>
+              <Text style={styles.summaryValue}>{item.value}</Text>
+            </View>
+          ))}
         </View>
-        <TouchableOpacity activeOpacity={0.7} style={styles.periodBtn}>
-          <Text style={styles.periodText}>📅  Last 12 Months</Text>
-        </TouchableOpacity>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tabBar}>
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab}
-            activeOpacity={0.7}
-            onPress={() => setActiveTab(tab)}
-            style={[styles.tab, activeTab === tab && styles.tabActive]}
-          >
-            <Text style={[styles.tabText, activeTab === tab && styles.tabTextActive]}>
-              {tab.charAt(0).toUpperCase() + tab.slice(1)}
-            </Text>
-          </TouchableOpacity>
+      {children}
+
+      <View style={styles.detailCard}>
+        <Text style={styles.sectionTitle}>Insights</Text>
+        {page.items.map((item, index) => (
+          <View key={`${page.title}-${index}`} style={styles.detailRow}>
+            <View style={styles.detailDot} />
+            <Text style={styles.detailText}>{item}</Text>
+          </View>
         ))}
-      </ScrollView>
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.kpiRow}>
-        <StatCard label="STUDENT GROWTH %" value="34.2%" sub="vs. previous period" delta="+12.4%" deltaPositive />
-        <StatCard label="CURRENT ENROLLMENT" value="8,420" sub="Target: 10,000 students" />
-        <StatCard label="DROPOUT RATE" value="2.1%" sub="Retention Health: Excellent" delta="-0.8%" deltaPositive />
-        <StatCard label="FUNNEL CONVERSION" value="18.5%" sub="Inquiries to Admissions" />
-      </ScrollView>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle}>Enrollment Dynamics</Text>
-            <Text style={styles.sectionSub}>Comparative growth analysis by department</Text>
-          </View>
-          <View style={styles.legend}>
-            <View style={[styles.legendDot, { backgroundColor: C.blue }]} />
-            <Text style={styles.legendText}>STEM</Text>
-            <View style={[styles.legendDot, { backgroundColor: '#8B5CF6' }]} />
-            <Text style={styles.legendText}>Humanities</Text>
-          </View>
-        </View>
-        <BarChart />
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Admission Funnel</Text>
-        <View style={{ marginTop: 12 }}>
-          <FunnelRow label="Inquiries" count="42,105" pct={100} />
-          <FunnelRow label="Applications" count="15,302" pct={72} />
-          <FunnelRow label="Interviews" count="6,430" pct={50} />
-          <FunnelRow label="Accepted" count="2,890" pct={34} />
-        </View>
-        <View style={styles.funnelFooter}>
-          <View style={styles.funnelStat}>
-            <Text style={styles.funnelStatValue}>5%</Text>
-            <Text style={styles.funnelStatLabel}>OVERALL YIELD</Text>
-          </View>
-          <View style={styles.funnelStat}>
-            <Text style={styles.funnelStatValue}>32%</Text>
-            <Text style={styles.funnelStatLabel}>ACCEPTANCE</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.insightHeader}>
-          <Text style={styles.insightTitle}>International Spotlight</Text>
-          <Text style={styles.insightBadge}>KEY INSIGHT</Text>
-        </View>
-        <Text style={styles.insightBody}>
-          12% increase in international applications from Southeast Asia this quarter.
-        </Text>
-        <View style={styles.regionRow}>
-          <View style={styles.regionItem}><View style={[styles.regionDot, { backgroundColor: C.blue }]} /><Text style={styles.regionLabel}>North America</Text><Text style={[styles.regionPct, { color: C.blue }]}>45%</Text></View>
-          <View style={styles.regionItem}><View style={[styles.regionDot, { backgroundColor: '#8B5CF6' }]} /><Text style={styles.regionLabel}>Europe</Text><Text style={[styles.regionPct, { color: '#8B5CF6' }]}>28%</Text></View>
-          <View style={styles.regionItem}><View style={[styles.regionDot, { backgroundColor: C.green }]} /><Text style={styles.regionLabel}>Asia</Text><Text style={[styles.regionPct, { color: C.green }]}>27%</Text></View>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View>
-            <Text style={styles.sectionTitle}>Recent Transitions</Text>
-            <Text style={styles.sectionSub}>Real-time admission & withdrawal feed</Text>
-          </View>
-          <TouchableOpacity activeOpacity={0.7} style={styles.viewAllBtn}>
-            <Text style={styles.viewAllText}>View All Records</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.tableHeader}>
-          <Text style={styles.tableHeaderText}>STUDENT</Text>
-          <Text style={styles.tableHeaderText}>STATUS</Text>
-          <Text style={styles.tableHeaderText}>PROGRAM</Text>
-          <Text style={styles.tableHeaderText}>DATE</Text>
-        </View>
-
-        <View style={styles.transRow}><Text style={styles.transName}>Julianna Dorsey</Text><Text style={styles.transDate}>NEW ADMISSION</Text><Text style={styles.transProgram}>Comp. Science</Text><Text style={styles.transDate}>Today</Text></View>
-        <View style={styles.transRow}><Text style={styles.transName}>Marcus Krensky</Text><Text style={styles.transDate}>WITHDRAWAL</Text><Text style={styles.transProgram}>Economics</Text><Text style={styles.transDate}>Yesterday</Text></View>
-        <View style={styles.transRow}><Text style={styles.transName}>Elena Luminaire</Text><Text style={styles.transDate}>NEW ADMISSION</Text><Text style={styles.transProgram}>Fine Arts</Text><Text style={styles.transDate}>2d ago</Text></View>
-      </View>
-
-      <View style={styles.tip}>
-        <Text style={styles.tipText}>💡  Tip: Tap any card or row to drill into detailed analytics</Text>
       </View>
     </ScrollView>
   );
+}
+
+function DirectorAnalyticsContent() {
+  const [activePage, setActivePage] = useState('overview');
+
+  const renderOverview = () => (
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scroll}>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.kpiRow}>
+        <StatCard label="STUDENT GROWTH %" value="34.2%" sub="vs. previous period" delta="+12.4%" deltaPositive onPress={() => setActivePage('studentGrowth')} />
+        <StatCard label="CURRENT ENROLLMENT" value="8,420" sub="Target: 10,000 students" onPress={() => setActivePage('currentEnrollment')} />
+        <StatCard label="DROPOUT RATE" value="2.1%" sub="Retention Health: Excellent" delta="-0.8%" deltaPositive onPress={() => setActivePage('dropoutRate')} />
+        <StatCard label="FUNNEL CONVERSION" value="18.5%" sub="Inquiries to Admissions" onPress={() => setActivePage('funnelConversion')} />
+      </ScrollView>
+
+      <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('enrollmentDynamics')} style={styles.sectionTouchable}>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Enrollment Dynamics</Text>
+              <Text style={styles.sectionSub}>Comparative growth analysis by department</Text>
+            </View>
+            <View style={styles.legend}>
+              <View style={[styles.legendDot, { backgroundColor: C.blue }]} />
+              <Text style={styles.legendText}>STEM</Text>
+              <View style={[styles.legendDot, { backgroundColor: '#8B5CF6' }]} />
+              <Text style={styles.legendText}>Humanities</Text>
+            </View>
+          </View>
+          <BarChart />
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('admissionFunnel')} style={styles.sectionTouchable}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Admission Funnel</Text>
+          <View style={{ marginTop: 12 }}>
+            <FunnelRow label="Inquiries" count="42,105" pct={100} />
+            <FunnelRow label="Applications" count="15,302" pct={72} />
+            <FunnelRow label="Interviews" count="6,430" pct={50} />
+            <FunnelRow label="Accepted" count="2,890" pct={34} />
+          </View>
+          <View style={styles.funnelFooter}>
+            <View style={styles.funnelStat}>
+              <Text style={styles.funnelStatValue}>5%</Text>
+              <Text style={styles.funnelStatLabel}>OVERALL YIELD</Text>
+            </View>
+            <View style={styles.funnelStat}>
+              <Text style={styles.funnelStatValue}>32%</Text>
+              <Text style={styles.funnelStatLabel}>ACCEPTANCE</Text>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('internationalSpotlight')} style={styles.sectionTouchable}>
+        <View style={styles.section}>
+          <View style={styles.insightHeader}>
+            <Text style={styles.insightTitle}>International Spotlight</Text>
+            <Text style={styles.insightBadge}>KEY INSIGHT</Text>
+          </View>
+          <Text style={styles.insightBody}>
+            12% increase in international applications from Southeast Asia this quarter.
+          </Text>
+          <View style={styles.regionRow}>
+            <View style={styles.regionItem}><View style={[styles.regionDot, { backgroundColor: C.blue }]} /><Text style={styles.regionLabel}>North America</Text><Text style={[styles.regionPct, { color: C.blue }]}>45%</Text></View>
+            <View style={styles.regionItem}><View style={[styles.regionDot, { backgroundColor: '#8B5CF6' }]} /><Text style={styles.regionLabel}>Europe</Text><Text style={[styles.regionPct, { color: '#8B5CF6' }]}>28%</Text></View>
+            <View style={styles.regionItem}><View style={[styles.regionDot, { backgroundColor: C.green }]} /><Text style={styles.regionLabel}>Asia</Text><Text style={[styles.regionPct, { color: C.green }]}>27%</Text></View>
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('recentTransitions')} style={styles.sectionTouchable}>
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <View>
+              <Text style={styles.sectionTitle}>Recent Transitions</Text>
+              <Text style={styles.sectionSub}>Real-time admission & withdrawal feed</Text>
+            </View>
+            <TouchableOpacity activeOpacity={0.7} style={styles.viewAllBtn} onPress={() => setActivePage('recentTransitions')}>
+              <Text style={styles.viewAllText}>View All Records</Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.tableHeader}>
+            <Text style={styles.tableHeaderText}>STUDENT</Text>
+            <Text style={styles.tableHeaderText}>STATUS</Text>
+            <Text style={styles.tableHeaderText}>PROGRAM</Text>
+            <Text style={styles.tableHeaderText}>DATE</Text>
+          </View>
+
+          <View style={styles.transRow}><Text style={styles.transName}>Julianna Dorsey</Text><Text style={styles.transDate}>NEW ADMISSION</Text><Text style={styles.transProgram}>Comp. Science</Text><Text style={styles.transDate}>Today</Text></View>
+          <View style={styles.transRow}><Text style={styles.transName}>Marcus Krensky</Text><Text style={styles.transDate}>WITHDRAWAL</Text><Text style={styles.transProgram}>Economics</Text><Text style={styles.transDate}>Yesterday</Text></View>
+          <View style={styles.transRow}><Text style={styles.transName}>Elena Luminaire</Text><Text style={styles.transDate}>NEW ADMISSION</Text><Text style={styles.transProgram}>Fine Arts</Text><Text style={styles.transDate}>2d ago</Text></View>
+        </View>
+      </TouchableOpacity>
+
+      <View style={styles.tip}>
+        <Text style={styles.tipText}>💡  Tap any card, chart, or tab to drill into detailed analytics</Text>
+      </View>
+    </ScrollView>
+  );
+
+  if (DETAIL_PAGES[activePage] && activePage !== 'overview') {
+    const page = DETAIL_PAGES[activePage];
+
+    const pageChildren =
+      activePage === 'enrollment' ? (
+        <View style={styles.detailSection}>
+          <View style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View>
+                <Text style={styles.sectionTitle}>Enrollment Dynamics</Text>
+                <Text style={styles.sectionSub}>Comparative growth analysis by department</Text>
+              </View>
+            </View>
+            <BarChart />
+          </View>
+        </View>
+      ) : activePage === 'admissions' ? (
+        <View style={styles.detailSection}>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Admission Funnel</Text>
+            <View style={{ marginTop: 12 }}>
+              <FunnelRow label="Inquiries" count="42,105" pct={100} />
+              <FunnelRow label="Applications" count="15,302" pct={72} />
+              <FunnelRow label="Interviews" count="6,430" pct={50} />
+              <FunnelRow label="Accepted" count="2,890" pct={34} />
+            </View>
+          </View>
+        </View>
+      ) : activePage === 'reports' ? (
+        <View style={styles.detailSection}>
+          <View style={styles.section}>
+            <View style={styles.insightHeader}>
+              <Text style={styles.insightTitle}>International Spotlight</Text>
+              <Text style={styles.insightBadge}>KEY INSIGHT</Text>
+            </View>
+            <Text style={styles.insightBody}>
+              12% increase in international applications from Southeast Asia this quarter.
+            </Text>
+            <View style={styles.regionRow}>
+              <View style={styles.regionItem}><View style={[styles.regionDot, { backgroundColor: C.blue }]} /><Text style={styles.regionLabel}>North America</Text><Text style={[styles.regionPct, { color: C.blue }]}>45%</Text></View>
+              <View style={styles.regionItem}><View style={[styles.regionDot, { backgroundColor: '#8B5CF6' }]} /><Text style={styles.regionLabel}>Europe</Text><Text style={[styles.regionPct, { color: '#8B5CF6' }]}>28%</Text></View>
+              <View style={styles.regionItem}><View style={[styles.regionDot, { backgroundColor: C.green }]} /><Text style={styles.regionLabel}>Asia</Text><Text style={[styles.regionPct, { color: C.green }]}>27%</Text></View>
+            </View>
+          </View>
+        </View>
+      ) : null;
+
+    return <DetailPage page={page} onBack={() => setActivePage('overview')}>{pageChildren}</DetailPage>;
+  }
+
+  return renderOverview();
 }
 
 export default function Analytics() {
@@ -225,6 +466,44 @@ const styles = StyleSheet.create({
   root: { flex: 1, flexDirection: 'row', backgroundColor: C.bg },
   main: { flex: 1, backgroundColor: C.bg },
   scroll: { padding: 16, paddingBottom: 32, flexGrow: 1 },
+  backButton: {
+    alignSelf: 'flex-start',
+    marginBottom: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: C.blueLight,
+  },
+  backButtonText: { color: C.blue, fontWeight: '800', fontSize: 12 },
+  detailCard: {
+    backgroundColor: C.card,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: C.border,
+    marginBottom: 14,
+  },
+  detailOverline: { fontSize: 10, color: C.blue, fontWeight: '800', letterSpacing: 1, textTransform: 'uppercase' },
+  detailTitle: { fontSize: 24, color: C.text, fontWeight: '900', marginTop: 4 },
+  detailSubtitle: { fontSize: 12, color: C.textMid, marginTop: 4, lineHeight: 17 },
+  detailSection: { marginBottom: 14 },
+  summaryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
+  summaryCard: {
+    flex: 1,
+    minWidth: 110,
+    backgroundColor: C.blueLight,
+    borderRadius: 12,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: C.blueMid,
+  },
+  summaryLabel: { fontSize: 10, color: C.textLight, fontWeight: '800', letterSpacing: 0.4 },
+  summaryValue: { fontSize: 18, color: C.text, fontWeight: '900', marginTop: 4 },
+  detailRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
+  detailDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: C.blue, marginTop: 6 },
+  detailText: { flex: 1, fontSize: 13, lineHeight: 19, color: C.textMid },
+  sectionTouchable: { marginBottom: 14 },
+  tabBar: { paddingBottom: 8, paddingRight: 16 },
 
   header: {
     flexDirection: 'row',

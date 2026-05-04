@@ -359,6 +359,7 @@ function DirectorSidebar({ onNavigate, activeKey, onLogout }) {
     parentId: 'dashboard',
   });
   const [expandedId, setExpandedId] = useState('dashboard');
+  const [logoutPressed, setLogoutPressed] = useState(false);
 
   useEffect(() => {
     if (!activeKey) return;
@@ -376,6 +377,12 @@ function DirectorSidebar({ onNavigate, activeKey, onLogout }) {
       return;
     }
     onNavigate && onNavigate(item.id);
+  };
+
+  const handleLogout = () => {
+    if (onLogout) {
+      onLogout();
+    }
   };
 
   return (
@@ -448,11 +455,24 @@ function DirectorSidebar({ onNavigate, activeKey, onLogout }) {
 
         {/* ── Footer ─────────────────────────────────────── */}
         <View style={styles.footer}>
-          <View style={styles.footerRow}>
-            <View style={styles.footerDot} />
-            <Text style={styles.footerText}>System Online</Text>
+          <View style={styles.footerTop}>
+            <View style={styles.footerRow}>
+              <View style={styles.footerDot} />
+              <Text style={styles.footerText}>System Online</Text>
+            </View>
+            <Text style={styles.footerVersion}>v2.4.1</Text>
           </View>
-          <Text style={styles.footerVersion}>v2.4.1</Text>
+          
+          <TouchableOpacity
+            style={[styles.logoutBtn, logoutPressed && styles.logoutBtnPressed]}
+            activeOpacity={0.85}
+            onPress={handleLogout}
+            onPressIn={() => setLogoutPressed(true)}
+            onPressOut={() => setLogoutPressed(false)}
+          >
+            <Text style={styles.logoutIcon}>↩</Text>
+            <Text style={styles.logoutText}>Logout</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>
@@ -716,13 +736,16 @@ const styles = StyleSheet.create({
 
   // Footer
   footer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: C.divider,
+    gap: 10,
+  },
+  footerTop: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   footerRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   footerDot: {
@@ -733,4 +756,30 @@ const styles = StyleSheet.create({
   },
   footerText: { color: C.textDim, fontSize: 9, fontWeight: '600' },
   footerVersion: { color: C.textDim, fontSize: 9 },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: C.red,
+    borderRadius: 10,
+    paddingVertical: 11,
+    paddingHorizontal: 14,
+    opacity: 0.9,
+  },
+  logoutBtnPressed: {
+    opacity: 0.75,
+    backgroundColor: '#DC2626',
+  },
+  logoutIcon: {
+    fontSize: 16,
+    color: '#FFFFFF',
+    fontWeight: '700',
+  },
+  logoutText: {
+    color: '#FFFFFF',
+    fontSize: 13,
+    fontWeight: '800',
+    letterSpacing: 0.4,
+  },
 });

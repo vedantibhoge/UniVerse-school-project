@@ -16,41 +16,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // NOTE: Drawer/overlay now provided by central DirectorDrawer in Dashboard/Sidebar.js
 
 // ─────────────────────────────────────────────────────────────
-// TOP NAV BAR
-// ─────────────────────────────────────────────────────────────
-const TopBar = ({ activeTab, setActiveTab }) => {
-  const tabs = [
-    { id: 'term',  label: 'TERM\nOVERVIEW' },
-    { id: 'staff', label: 'STAFF\nDIRECTORY' },
-    { id: 'fin',   label: 'FINANCIALS' },
-  ];
-
-  return (
-    <View style={styles.topBar}>
-      {/* Tabs */}
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsScroll}>
-        {tabs.map((tab) => {
-          const isActive = tab.id === activeTab;
-          return (
-            <TouchableOpacity
-              key={tab.id}
-              activeOpacity={0.75}
-              onPress={() => setActiveTab(tab.id)}
-              style={[styles.topTab, isActive && styles.topTabActive]}
-            >
-              <Text style={[styles.topTabText, isActive && styles.topTabTextActive]}>
-                {tab.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
-
-    </View>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────
 // SEARCH BAR
 // ─────────────────────────────────────────────────────────────
 // ─────────────────────────────────────────────────────────────
@@ -117,6 +82,132 @@ const SECTION_COPY = {
   },
 };
 
+const DETAIL_PAGES = {
+  term: {
+    title: 'Term Overview',
+    tag: 'Branch Summary',
+    subtitle: 'Track enrollment growth, academic movement, and branch-wide student performance for the current term.',
+    accent: '#2563eb',
+    summary: [
+      { label: 'Active Intake', value: '4,829' },
+      { label: 'Retention', value: '97.8%' },
+      { label: 'Status', value: 'Stable' },
+    ],
+    items: [
+      'Term performance remains strong across the branch.',
+      'Enrollment and retention are both within target.',
+      'Use this page to review the current term in detail.',
+    ],
+  },
+  growth: {
+    title: 'Student Growth',
+    tag: 'Performance Trend',
+    subtitle: 'Growth metrics and student movement across the branch.',
+    accent: '#2563eb',
+    summary: [
+      { label: 'Student Growth', value: '+12.4%' },
+      { label: 'Admissions', value: '4,829' },
+      { label: 'Trend', value: 'Upward' },
+    ],
+    items: [
+      'Student growth is outperforming the target this term.',
+      'Use this page to review growth drivers by section.',
+      'Scroll for additional branch performance notes.',
+    ],
+  },
+  dropout: {
+    title: 'Dropout Rate',
+    tag: 'Retention Health',
+    subtitle: 'Retention health and dropout review for the branch.',
+    accent: '#ef4444',
+    summary: [
+      { label: 'Dropout Rate', value: '3.2%' },
+      { label: 'Retention', value: '96.8%' },
+      { label: 'Health', value: 'Good' },
+    ],
+    items: [
+      'Dropout levels remain low and manageable.',
+      'Retention support should remain active for at-risk students.',
+      'Scroll to review the current term context.',
+    ],
+  },
+  funnel: {
+    title: 'Admission Funnel',
+    tag: 'Admissions Flow',
+    subtitle: 'Scrollable admissions pipeline and conversion breakdown.',
+    accent: '#7c3aed',
+    summary: [
+      { label: 'Inquiries', value: '4,120' },
+      { label: 'Applications', value: '1,840' },
+      { label: 'Yield', value: '14.8%' },
+    ],
+    items: [
+      'The funnel shows a healthy conversion ratio.',
+      'Applications are strongest in the current term.',
+      'Use this page for admissions review and follow-up.',
+    ],
+  },
+  geo: {
+    title: 'Geographic Reach',
+    tag: 'Regional View',
+    subtitle: 'Regional distribution of newly admitted students.',
+    accent: '#10b981',
+    summary: [
+      { label: 'Top Region', value: 'Metropolitan Area' },
+      { label: 'Diversity Index', value: '0.78' },
+      { label: 'Coverage', value: 'High' },
+    ],
+    items: [
+      'Geographic diversity remains broad and stable.',
+      'Metropolitan areas continue to lead admissions.',
+      'Review the map section for regional mix context.',
+    ],
+  },
+};
+
+function DetailPage({ page, onBack, children }) {
+  return (
+    <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <View style={[styles.detailHero, { borderTopColor: page.accent }]}>
+        <View style={styles.detailHeroTopRow}>
+          <TouchableOpacity activeOpacity={0.8} onPress={onBack} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+          </TouchableOpacity>
+          <View style={[styles.detailTag, { backgroundColor: `${page.accent}14` }]}>
+            <Text style={[styles.detailTagText, { color: page.accent }]}>{page.tag}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.detailTitle}>{page.title}</Text>
+        <Text style={styles.detailDesc}>{page.subtitle}</Text>
+
+        <View style={styles.detailAccentLine} />
+
+        <View style={styles.summaryGrid}>
+          {page.summary.map((item) => (
+            <View key={item.label} style={styles.summaryCard}>
+              <Text style={styles.summaryLabel}>{item.label}</Text>
+              <Text style={[styles.summaryValue, { color: page.accent }]}>{item.value}</Text>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {children}
+
+      <View style={styles.card}>
+        <Text style={styles.cardTitle}>Details</Text>
+        {page.items.map((item, index) => (
+          <View key={`${page.title}-${index}`} style={styles.detailRow}>
+            <View style={styles.detailDot} />
+            <Text style={styles.detailText}>{item}</Text>
+          </View>
+        ))}
+      </View>
+    </ScrollView>
+  );
+}
+
 const SectionCard = ({ title, value, tone }) => (
   <View style={styles.sectionCard}>
     <Text style={styles.sectionCardTitle}>{title}</Text>
@@ -173,18 +264,74 @@ const StudentRow = ({ initials, avatarBg, name, course, tags, status, statusDot,
 // MAIN SCREEN
 // ─────────────────────────────────────────────────────────────
 export default function Branch() {
-  const [activeNav, setActiveNav] = useState('students');
-  const [activeTab, setActiveTab] = useState('term');
-  const section = SECTION_COPY[activeTab] || SECTION_COPY.term;
+  const [activePage, setActivePage] = useState('overview');
+  const section = SECTION_COPY.term;
+
+  if (activePage !== 'overview') {
+    const page = DETAIL_PAGES[activePage] || DETAIL_PAGES.term;
+
+    const pageChildren =
+      activePage === 'term' ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Term Snapshot</Text>
+          <View style={styles.sectionHeroGrid}>
+            <SectionCard title="Active Intake" value="4,829" tone="#2563eb" />
+            <SectionCard title="Retention" value="97.8%" tone="#10b981" />
+          </View>
+        </View>
+      ) : activePage === 'growth' ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Growth Snapshot</Text>
+          <Text style={styles.cardDesc}>This page focuses on student growth performance and change over time.</Text>
+          <View style={styles.inlineMetricRow}>
+            <View style={styles.inlineMetric}>
+              <Text style={styles.inlineMetricLabel}>Momentum</Text>
+              <Text style={styles.inlineMetricValue}>Strong</Text>
+            </View>
+            <View style={styles.inlineMetric}>
+              <Text style={styles.inlineMetricLabel}>Change</Text>
+              <Text style={styles.inlineMetricValue}>+12.4%</Text>
+            </View>
+          </View>
+        </View>
+      ) : activePage === 'dropout' ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Retention Snapshot</Text>
+          <Text style={styles.cardDesc}>Monitor students at risk and keep dropout rates low.</Text>
+          <View style={styles.inlineMetricRow}>
+            <View style={styles.inlineMetric}>
+              <Text style={styles.inlineMetricLabel}>Risk Level</Text>
+              <Text style={[styles.inlineMetricValue, { color: '#ef4444' }]}>Low</Text>
+            </View>
+            <View style={styles.inlineMetric}>
+              <Text style={styles.inlineMetricLabel}>Retention</Text>
+              <Text style={styles.inlineMetricValue}>96.8%</Text>
+            </View>
+          </View>
+        </View>
+      ) : activePage === 'funnel' ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Admission Funnel</Text>
+          <FunnelBar topLabel="100% Reach" pct={100} color="#2563eb" />
+          <FunnelBar topLabel="Applications" bottomLabel="33.2% Conversion" pct={33} count="4,120" color="#2563eb" />
+          <FunnelBar topLabel="Final Admissions" bottomLabel="14.8% Yield" pct={15} count="1,840" color="#3b82f6" />
+        </View>
+      ) : (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Geographic Distribution</Text>
+          <View style={styles.mapPlaceholder}>
+            <Text style={styles.mapEmoji}>🗺️</Text>
+            <Text style={styles.mapText}>World Map – Geographic Distribution</Text>
+          </View>
+        </View>
+      );
+
+    return <DetailPage page={page} onBack={() => setActivePage('overview')}>{pageChildren}</DetailPage>;
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-
-      <TopBar
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-      />
 
       <ScrollView
         style={styles.scroll}
@@ -195,55 +342,13 @@ export default function Branch() {
           <Text style={styles.sectionHeroLabel}>{section.title}</Text>
           <Text style={styles.sectionHeroText}>{section.text}</Text>
 
-          {activeTab === 'term' && (
+          <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('term')}>
             <View style={styles.sectionHeroGrid}>
               <SectionCard title="Active Intake" value="4,829" tone="#2563eb" />
               <SectionCard title="Retention" value="97.8%" tone="#10b981" />
             </View>
-          )}
-
-          {activeTab === 'staff' && (
-            <View style={styles.sectionHeroGrid}>
-              <SectionCard title="Assigned Staff" value="286" tone="#7c3aed" />
-              <SectionCard title="Coverage" value="93%" tone="#2563eb" />
-            </View>
-          )}
-
-          {activeTab === 'fin' && (
-            <View style={styles.sectionHeroGrid}>
-              <SectionCard title="Term Revenue" value="$1.48M" tone="#10b981" />
-              <SectionCard title="Collections" value="92%" tone="#f59e0b" />
-            </View>
-          )}
+          </TouchableOpacity>
         </View>
-
-        {activeTab === 'staff' && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Staff Snapshot</Text>
-            <Text style={styles.cardDesc}>
-              The branch currently has active teaching and admin support across core programs.
-            </Text>
-            <View style={styles.miniList}>
-              <Text style={styles.miniItem}>• 14 teaching staff on duty</Text>
-              <Text style={styles.miniItem}>• 3 staff members on leave</Text>
-              <Text style={styles.miniItem}>• 96% timetable coverage</Text>
-            </View>
-          </View>
-        )}
-
-        {activeTab === 'fin' && (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Financial Snapshot</Text>
-            <Text style={styles.cardDesc}>
-              Branch cashflow and fee collection are trending upward against last term.
-            </Text>
-            <View style={styles.miniList}>
-              <Text style={styles.miniItem}>• Outstanding balances reduced by 12%</Text>
-              <Text style={styles.miniItem}>• 4 major expense categories tracked</Text>
-              <Text style={styles.miniItem}>• No overdue vendor payouts</Text>
-            </View>
-          </View>
-        )}
 
         {/* ── Stat Cards ── */}
         <ScrollView
@@ -251,33 +356,40 @@ export default function Branch() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.statCards}
         >
-          <StatCard
+          <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('growth')}>
+            <StatCard
             label="STUDENT GROWTH %"
             value="+12.4%"
             badge="2.1%"
             badgeUp
             sub="Surpassing target by 150 students"
             accentColor="#2563eb"
-          />
-          <StatCard
+            />
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('dropout')}>
+            <StatCard
             label="DROPOUT RATE"
             value="3.2%"
             badge="0.5%"
             badgeUp={false}
             sub="Lowest in 4 academic cycles"
             accentColor="#ef4444"
-          />
-          <StatCard
+            />
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('term')}>
+            <StatCard
             label="CURRENT ENROLLMENT"
             value="4,829"
             badge="Target: 5k"
             badgeUp
             sub="96% of total campus capacity"
             accentColor="#7c3aed"
-          />
+            />
+          </TouchableOpacity>
         </ScrollView>
 
         {/* ── Admission Funnel ── */}
+        <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('funnel')} style={styles.cardTouchable}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardTitle}>Admission Funnel</Text>
@@ -298,8 +410,10 @@ export default function Branch() {
             </TouchableOpacity>
           </View>
         </View>
+        </TouchableOpacity>
 
         {/* ── Geographic Reach ── */}
+        <TouchableOpacity activeOpacity={0.8} onPress={() => setActivePage('geo')} style={styles.cardTouchable}>
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Geographic Reach</Text>
           <Text style={styles.cardDesc}>Distribution of newly admitted students by region.</Text>
@@ -314,6 +428,7 @@ export default function Branch() {
             <GeoStat label="DIVERSITY INDEX" value="0.78 (High)" />
           </View>
         </View>
+        </TouchableOpacity>
 
         {/* ── Recent Significant Changes ── */}
         <View style={styles.sectionHeader}>
@@ -577,6 +692,41 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: '#64748b',
   },
+  detailHero: {
+    backgroundColor: '#fff',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    padding: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderTopWidth: 4,
+  },
+  detailHeroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  detailTag: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+  detailTagText: {
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  detailAccentLine: {
+    height: 1,
+    backgroundColor: '#e2e8f0',
+    marginTop: 14,
+    marginBottom: 14,
+  },
   sectionHeroGrid: {
     flexDirection: 'row',
     gap: 10,
@@ -653,6 +803,9 @@ const styles = StyleSheet.create({
     color: '#64748b',
     lineHeight: 17,
   },
+  cardTouchable: {
+    marginBottom: 16,
+  },
 
   // ── Card ────────────────────────────────
   card: {
@@ -693,6 +846,32 @@ const styles = StyleSheet.create({
     lineHeight: 19,
     color: '#334155',
     fontWeight: '500',
+  },
+  inlineMetricRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 6,
+  },
+  inlineMetric: {
+    flex: 1,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 12,
+    padding: 12,
+  },
+  inlineMetricLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94a3b8',
+    letterSpacing: 0.5,
+    textTransform: 'uppercase',
+  },
+  inlineMetricValue: {
+    marginTop: 5,
+    fontSize: 15,
+    fontWeight: '800',
+    color: '#0f172a',
   },
 
   // ── Live Badge ──────────────────────────
@@ -964,5 +1143,52 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#94a3b8',
     letterSpacing: 2,
+  },
+  summaryGrid: {
+    flexDirection: 'row',
+    gap: 10,
+    flexWrap: 'wrap',
+  },
+  summaryCard: {
+    flexGrow: 1,
+    flexBasis: '30%',
+    minWidth: 98,
+    backgroundColor: '#f8fafc',
+    borderWidth: 1,
+    borderColor: '#e2e8f0',
+    borderRadius: 14,
+    padding: 12,
+  },
+  summaryLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#94a3b8',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  summaryValue: {
+    marginTop: 6,
+    fontSize: 18,
+    fontWeight: '900',
+    color: '#0f172a',
+  },
+  detailRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    marginTop: 12,
+  },
+  detailDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 999,
+    backgroundColor: '#2563eb',
+    marginTop: 6,
+  },
+  detailText: {
+    flex: 1,
+    fontSize: 13,
+    lineHeight: 19,
+    color: '#334155',
   },
 });
