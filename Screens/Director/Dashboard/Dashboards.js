@@ -98,30 +98,254 @@ const HeatCell = ({ val }) => {
   );
 };
 
-// ─── STAT CARD ──────────────────────────────────────────────────────────────
-const StatCard = ({ label, value, badge, badgeColor = C.primary, badgeBg = C.primaryLight }) => (
-  <View style={[styles.card, { flex: 1, minWidth: 130 }]}>
-    <Text style={styles.statLabel}>{label}</Text>
-    <Text style={styles.statValue}>{value}</Text>
-    {badge && (
-      <View style={[styles.badge, { backgroundColor: badgeBg }]}>
-        <Text style={[styles.badgeText, { color: badgeColor }]}>{badge}</Text>
+const detailPages = {
+  totalStudents: {
+    title: 'Total Students',
+    subtitle: 'Enrollment overview across all active campuses and academic programs.',
+    summary: [
+      { label: 'Current Enrollment', value: '12,842' },
+      { label: 'New Admissions', value: '1,240' },
+      { label: 'Retention Rate', value: '94.8%' },
+    ],
+    items: [
+      'Northside Academy: 4,120 students',
+      'Downtown International: 5,883 students',
+      'West Lake Campus: 2,839 students',
+    ],
+  },
+  grossRevenue: {
+    title: 'Gross Revenue',
+    subtitle: 'Latest income snapshot from tuition, fees, and auxiliary collections.',
+    summary: [
+      { label: 'Gross Revenue', value: '$4.2M' },
+      { label: 'Year-to-Date', value: '$11.9M' },
+      { label: 'Target Progress', value: '92.4%' },
+    ],
+    items: [
+      'Tuition collections remain the largest revenue source.',
+      'Ancillary services contributed 14% of the current cycle total.',
+      'Revenue is tracking above the monthly forecast band.',
+    ],
+  },
+  admissionsGrowth: {
+    title: 'Admissions Growth',
+    subtitle: 'Growth pipeline and intake performance for the current cycle.',
+    summary: [
+      { label: 'New Admissions', value: '1,240' },
+      { label: 'Growth Rate', value: '+15.4%' },
+      { label: 'Target', value: 'Met' },
+    ],
+    items: [
+      'Applications continue to rise across junior and senior programs.',
+      'Open-house conversion is strongest at the West Lake Campus.',
+      'Priority follow-up remains on late-stage applicants.',
+    ],
+  },
+  activeAlerts: {
+    title: 'Active Alerts',
+    subtitle: 'Open items that need review across finance, academics, and operations.',
+    summary: [
+      { label: 'Open Alerts', value: '04' },
+      { label: 'Urgent Items', value: '02' },
+      { label: 'Pending Review', value: '02' },
+    ],
+    items: [
+      'Finance: overdue fee accounts need follow-up.',
+      'Academics: staffing gap at West Lake requires coverage.',
+      'Safety: campus inspection scheduled for Friday.',
+    ],
+  },
+  schoolHealth: {
+    title: 'School Health Monitor',
+    subtitle: 'Graph-based cross-institutional tracking for academic and financial stability.',
+    chartTitle: 'Graph Information',
+    chartData: {
+      academic: [60, 75, 85, 70, 90, 80, 95, 88, 100, 92],
+      financial: [50, 65, 72, 68, 80, 75, 85, 78, 88, 82],
+    },
+    summary: [
+      { label: 'Academic Index', value: '94.1' },
+      { label: 'Financial Index', value: '88.3' },
+      { label: 'Overall Health', value: 'Stable' },
+    ],
+    items: [
+      'Academic trend remains above the quarterly benchmark.',
+      'Financial curve is improving with steady month-over-month growth.',
+      'Use the chart below to compare both tracks at a glance.',
+    ],
+  },
+  boardReport: {
+    title: 'Board Report',
+    subtitle: 'Executive summary for leadership review and download.',
+    actionLabel: 'Download Report',
+    actionMessage: 'Board report download started.',
+    summary: [
+      { label: 'Status', value: 'Ready' },
+      { label: 'Sections', value: '06' },
+      { label: 'Last Updated', value: 'Today' },
+    ],
+    items: [
+      'Enrollment, revenue, and alert trends are included in the report.',
+      'Exportable summary supports board-level review and circulation.',
+      'Use this page as the launch point for the download workflow.',
+    ],
+  },
+  financeAlert: {
+    title: 'Finance Alert',
+    subtitle: 'Fee delinquency list for the Northside branch.',
+    summary: [
+      { label: 'Past Due Accounts', value: '16%' },
+      { label: 'High-Risk Accounts', value: '38' },
+      { label: 'Recovery Status', value: 'In Progress' },
+    ],
+    items: [
+      'Q3 fee balances are overdue for a subset of students.',
+      'Reminder notices should be sent to all high-risk accounts.',
+      'Account dept follow-up is required before the weekly close.',
+    ],
+  },
+  academicAlert: {
+    title: 'Academic Alert',
+    subtitle: 'Temporary staffing coverage required for humanities and maths.',
+    summary: [
+      { label: 'Departments Impacted', value: '2' },
+      { label: 'Temp Leads Needed', value: '2' },
+      { label: 'Priority', value: 'High' },
+    ],
+    items: [
+      'Maths and humanities departments need short-term coverage.',
+      'Class schedules should be stabilized before the next cycle.',
+      'Leadership review is recommended for the affected branch.',
+    ],
+  },
+  safetyAlert: {
+    title: 'Safety Alert',
+    subtitle: 'Municipal inspection details for the downtown campus.',
+    summary: [
+      { label: 'Inspection Date', value: 'Friday, 11 AM' },
+      { label: 'Campus', value: 'Downtown' },
+      { label: 'Status', value: 'Scheduled' },
+    ],
+    items: [
+      'Building safety review is confirmed with municipal staff.',
+      'Facilities team should prepare the required inspection files.',
+      'All on-site compliance checks must be complete beforehand.',
+    ],
+  },
+};
+
+const DetailScreen = ({ title, subtitle, summary, items, chartTitle, chartData, actionLabel, actionMessage, onBack }) => (
+  <ScrollView style={styles.screenContent} showsVerticalScrollIndicator={false}>
+    <TouchableOpacity activeOpacity={0.7} onPress={onBack} style={styles.backBtnLarge}>
+      <Text style={styles.backBtnLargeText}>← Back</Text>
+    </TouchableOpacity>
+
+    <View style={styles.card}>
+      <Text style={styles.pageTitle}>{title}</Text>
+      <Text style={styles.pageSubtitle}>{subtitle}</Text>
+      <View style={styles.detailSummaryRow}>
+        {summary.map((entry) => (
+          <View key={entry.label} style={styles.detailSummaryCard}>
+            <Text style={styles.detailSummaryLabel}>{entry.label}</Text>
+            <Text style={styles.detailSummaryValue}>{entry.value}</Text>
+          </View>
+        ))}
+      </View>
+    </View>
+
+    <View style={styles.card}>
+      <Text style={styles.sectionTitle}>Information</Text>
+      {items.map((item) => (
+        <View key={item} style={styles.detailListItem}>
+          <Text style={styles.detailBullet}>•</Text>
+          <Text style={styles.detailListText}>{item}</Text>
+        </View>
+      ))}
+    </View>
+
+    {chartData && (
+      <View style={styles.card}>
+        <Text style={styles.sectionTitle}>{chartTitle || 'Graph Information'}</Text>
+        <Text style={styles.sectionSubtitle}>Academic vs financial trend comparison.</Text>
+        <View style={{ flexDirection: 'row', gap: 12, marginTop: 10 }}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.detailSummaryLabel}>Academic Trend</Text>
+            <MiniBarChart data={chartData.academic} color={C.primary} height={96} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.detailSummaryLabel}>Financial Trend</Text>
+            <MiniBarChart data={chartData.financial} color="#60A5FA" height={96} />
+          </View>
+        </View>
       </View>
     )}
-  </View>
+    {actionLabel && (
+      <TouchableOpacity
+        activeOpacity={0.8}
+        onPress={() => Alert.alert('Board Report', actionMessage || 'Action completed.')}
+        style={[styles.primaryBtn, { alignSelf: 'flex-start', marginBottom: 12 }]}
+      >
+        <Text style={styles.primaryBtnText}>{actionLabel}</Text>
+      </TouchableOpacity>
+    )}
+  </ScrollView>
 );
 
-// ─── ALERT CARD ─────────────────────────────────────────────────────────────
-const AlertCard = ({ type, title, subtitle, tag, tagColor, tagBg }) => (
-  <View style={[styles.alertCard, { borderLeftColor: tagColor }]}>
-    <Text style={[styles.alertType, { color: tagColor }]}>{type}</Text>
-    <Text style={styles.alertTitle}>{title}</Text>
-    <Text style={styles.alertSubtitle}>{subtitle}</Text>
-    <View style={[styles.badge, { backgroundColor: tagBg, alignSelf: 'flex-start', marginTop: 4 }]}>
-      <Text style={[styles.badgeText, { color: tagColor }]}>{tag}</Text>
+// ─── STAT CARD ──────────────────────────────────────────────────────────────
+const StatCard = ({ label, value, badge, badgeColor = C.primary, badgeBg = C.primaryLight, onPress }) => {
+  if (onPress) {
+    return (
+      <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.card, styles.touchCard, { flex: 1, minWidth: 130 }]}>
+        <Text style={styles.statLabel}>{label}</Text>
+        <Text style={styles.statValue}>{value}</Text>
+        {badge && (
+          <View style={[styles.badge, { backgroundColor: badgeBg }]}>
+            <Text style={[styles.badgeText, { color: badgeColor }]}>{badge}</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View style={[styles.card, styles.touchCard, { flex: 1, minWidth: 130 }]}>
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statValue}>{value}</Text>
+      {badge && (
+        <View style={[styles.badge, { backgroundColor: badgeBg }]}>
+          <Text style={[styles.badgeText, { color: badgeColor }]}>{badge}</Text>
+        </View>
+      )}
     </View>
-  </View>
-);
+  );
+};
+
+// ─── ALERT CARD ─────────────────────────────────────────────────────────────
+const AlertCard = ({ type, title, subtitle, tag, tagColor, tagBg, onPress }) => {
+  if (onPress) {
+    return (
+      <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[styles.alertCard, styles.touchCard, { borderLeftColor: tagColor }]}>
+        <Text style={[styles.alertType, { color: tagColor }]}>{type}</Text>
+        <Text style={styles.alertTitle}>{title}</Text>
+        <Text style={styles.alertSubtitle}>{subtitle}</Text>
+        <View style={[styles.badge, { backgroundColor: tagBg, alignSelf: 'flex-start', marginTop: 4 }]}>
+          <Text style={[styles.badgeText, { color: tagColor }]}>{tag}</Text>
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View style={[styles.alertCard, styles.touchCard, { borderLeftColor: tagColor }]}>
+      <Text style={[styles.alertType, { color: tagColor }]}>{type}</Text>
+      <Text style={styles.alertTitle}>{title}</Text>
+      <Text style={styles.alertSubtitle}>{subtitle}</Text>
+      <View style={[styles.badge, { backgroundColor: tagBg, alignSelf: 'flex-start', marginTop: 4 }]}>
+        <Text style={[styles.badgeText, { color: tagColor }]}>{tag}</Text>
+      </View>
+    </View>
+  );
+};
 
 // ─── TOP NAV ────────────────────────────────────────────────────────────────
 const TopNav = ({ activeTab, onTabPress }) => {
@@ -176,47 +400,44 @@ const InnerNav = ({ active, onBack, onNavigate }) => {
 // ════════════════════════════════════════════════════════════════════════════
 // SCREEN 1 — DASHBOARD
 // ════════════════════════════════════════════════════════════════════════════
-const DashboardScreen = ({ onNavigate }) => (
+const DashboardScreen = ({ onNavigate, onOpenDetail }) => (
   <ScrollView style={styles.screenContent} showsVerticalScrollIndicator={false}>
     {/* KPI Row */}
     <View style={styles.row}>
-      <StatCard label="TOTAL STUDENTS" value="12,842" badge="+15.4%" />
-      <StatCard label="GROSS REVENUE" value="$4.2M" badge="+6.3%" />
-      <StatCard label="ADMISSIONS GROWTH" value="1,240" badge="Target Met" badgeColor={C.success} badgeBg={C.successBg} />
-      <StatCard label="ACTIVE ALERTS" value="04" badge="Urgent" badgeColor={C.danger} badgeBg={C.dangerBg} />
+      <StatCard label="TOTAL STUDENTS" value="12,842" badge="+15.4%" onPress={() => onOpenDetail('totalStudents')} />
+      <StatCard label="GROSS REVENUE" value="$4.2M" badge="+6.3%" onPress={() => onOpenDetail('grossRevenue')} />
+      <StatCard label="ADMISSIONS GROWTH" value="1,240" badge="Target Met" badgeColor={C.success} badgeBg={C.successBg} onPress={() => onOpenDetail('admissionsGrowth')} />
+      <StatCard label="ACTIVE ALERTS" value="04" badge="Urgent" badgeColor={C.danger} badgeBg={C.dangerBg} onPress={() => onOpenDetail('activeAlerts')} />
     </View>
 
-    {/* Main content row */}
-    <View style={[styles.row, { alignItems: 'flex-start' }]}>
-      {/* School Health Monitor */}
-      <View style={[styles.card, { flex: 2 }]}>
-        <Text style={styles.sectionTitle}>School Health Monitor</Text>
-        <Text style={styles.sectionSubtitle}>Cross-institutional academic and financial stability tracking.</Text>
-        <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
-          <View style={{ flex: 1 }}>
-            <MiniBarChart data={[60, 75, 85, 70, 90, 80, 95, 88, 100, 92]} color={C.primary} height={100} />
-          </View>
-          <View style={{ flex: 1 }}>
-            <MiniBarChart data={[50, 65, 72, 68, 80, 75, 85, 78, 88, 82]} color="#60A5FA" height={100} />
-          </View>
+    {/* School Health Monitor */}
+    <TouchableOpacity activeOpacity={0.75} onPress={() => onOpenDetail('schoolHealth')} style={[styles.card, styles.touchCard]}>
+      <Text style={styles.sectionTitle}>School Health Monitor</Text>
+      <Text style={styles.sectionSubtitle}>Cross-institutional academic and financial stability tracking.</Text>
+      <View style={{ flexDirection: 'row', gap: 16, marginTop: 8 }}>
+        <View style={{ flex: 1 }}>
+          <MiniBarChart data={[60, 75, 85, 70, 90, 80, 95, 88, 100, 92]} color={C.primary} height={100} />
         </View>
-        <View style={[styles.row, { marginTop: 8 }]}>
-          <View style={styles.legendDot(C.primary)} /><Text style={styles.legendText}>Academic</Text>
-          <View style={[styles.legendDot(C.primary), { backgroundColor: '#60A5FA', marginLeft: 12 }]} />
-          <Text style={styles.legendText}>Financial</Text>
+        <View style={{ flex: 1 }}>
+          <MiniBarChart data={[50, 65, 72, 68, 80, 75, 85, 78, 88, 82]} color="#60A5FA" height={100} />
         </View>
       </View>
+      <View style={[styles.row, { marginTop: 8 }]}>
+        <View style={styles.legendDot(C.primary)} /><Text style={styles.legendText}>Academic</Text>
+        <View style={[styles.legendDot(C.primary), { backgroundColor: '#60A5FA', marginLeft: 12 }]} />
+        <Text style={styles.legendText}>Financial</Text>
+      </View>
+    </TouchableOpacity>
 
-      {/* Critical Alerts */}
-      <View style={[styles.card, { flex: 1 }]}>
-        <View style={[styles.row, { justifyContent: 'space-between', marginBottom: 8 }]}>
-          <Text style={styles.sectionTitle}>Critical Alerts</Text>
-          <Text style={{ fontSize: 16 }}>▽</Text>
-        </View>
-        <AlertCard type="FINANCIAL" title="Northside Fee Delinquency" subtitle="16% of student accounts past due for Q3." tag="URGENT" tagColor={C.danger} tagBg={C.dangerBg} />
-        <AlertCard type="ACADEMICS" title="Teacher Shortage: West Lake" subtitle="Maths/Humanities department requires 2 temporary staff leads." tag="ACTION REQUIRED" tagColor={C.warning} tagBg={C.warningBg} />
-        <AlertCard type="SAFETY" title="Downtown Campus Inspection" subtitle="Municipal safety audit scheduled for Friday, 11 AM." tag="SCHEDULED" tagColor={C.primary} tagBg={C.primaryLight} />
+    {/* Critical Alerts */}
+    <View style={[styles.card, { marginTop: 2 }]}>
+      <View style={[styles.row, { justifyContent: 'space-between', marginBottom: 8 }]}>
+        <Text style={styles.sectionTitle}>Critical Alerts</Text>
+        <Text style={{ fontSize: 16 }}>▽</Text>
       </View>
+      <AlertCard type="FINANCIAL" title="Northside Fee Delinquency" subtitle="16% of student accounts past due for Q3." tag="URGENT" tagColor={C.danger} tagBg={C.dangerBg} onPress={() => onOpenDetail('financeAlert')} />
+      <AlertCard type="ACADEMICS" title="Teacher Shortage: West Lake" subtitle="Maths/Humanities department requires 2 temporary staff leads." tag="ACTION REQUIRED" tagColor={C.warning} tagBg={C.warningBg} onPress={() => onOpenDetail('academicAlert')} />
+      <AlertCard type="SAFETY" title="Downtown Campus Inspection" subtitle="Municipal safety audit scheduled for Friday, 11 AM." tag="SCHEDULED" tagColor={C.primary} tagBg={C.primaryLight} onPress={() => onOpenDetail('safetyAlert')} />
     </View>
 
     {/* Management Pulse */}
@@ -226,7 +447,7 @@ const DashboardScreen = ({ onNavigate }) => (
           <Text style={styles.sectionTitle}>Management Pulse</Text>
           <Text style={styles.sectionSubtitle}>Institutional comparison across core operational dimensions.</Text>
         </View>
-        <TouchableOpacity activeOpacity={0.7} style={styles.primaryBtn}>
+        <TouchableOpacity activeOpacity={0.7} onPress={() => onOpenDetail('boardReport')} style={styles.primaryBtn}>
           <Text style={styles.primaryBtnText}>Download Board Report</Text>
         </TouchableOpacity>
       </View>
@@ -752,10 +973,31 @@ const PerformanceDeepDiveScreen = () => (
 export default function Dashboard() {
   const [activeScreen, setActiveScreen] = useState('Dashboard');
 
+  const renderActiveScreen = () => {
+    if (detailPages[activeScreen]) {
+      const page = detailPages[activeScreen];
+      return <DetailScreen {...page} onBack={() => setActiveScreen('Dashboard')} />;
+    }
+
+    if (activeScreen === 'StaffEfficiency') {
+      return <StaffEfficiencyScreen />;
+    }
+
+    if (activeScreen === 'FinancialHealth') {
+      return <FinancialHealthScreen />;
+    }
+
+    if (activeScreen === 'PerformanceDeepDive') {
+      return <PerformanceDeepDiveScreen />;
+    }
+
+    return <DashboardScreen onNavigate={setActiveScreen} onOpenDetail={setActiveScreen} />;
+  };
+
   return (
     <SafeAreaView style={styles.root}>
       <StatusBar barStyle="dark-content" backgroundColor={C.white} />
-      {activeScreen !== 'Dashboard' && (
+      {activeScreen !== 'Dashboard' && !detailPages[activeScreen] && (
         <InnerNav
           active={
             activeScreen === 'StaffEfficiency' ? 'Institutional Oversight'
@@ -767,10 +1009,7 @@ export default function Dashboard() {
         />
       )}
 
-      {activeScreen === 'Dashboard' && <DashboardScreen onNavigate={setActiveScreen} />}
-      {activeScreen === 'StaffEfficiency' && <StaffEfficiencyScreen />}
-      {activeScreen === 'FinancialHealth' && <FinancialHealthScreen />}
-      {activeScreen === 'PerformanceDeepDive' && <PerformanceDeepDiveScreen />}
+      {renderActiveScreen()}
 
       {/* FAB */}
       {activeScreen !== 'Dashboard' && (
@@ -809,18 +1048,41 @@ const styles = StyleSheet.create({
   navTabTextActive: { color: C.primary, fontWeight: '700' },
   backBtn: { paddingHorizontal: 10, paddingVertical: 5, backgroundColor: C.primaryLight, borderRadius: 6 },
   backBtnText: { fontSize: 12, color: C.primary, fontWeight: '700' },
+  backBtnLarge: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: C.primaryLight,
+    borderRadius: 10,
+    marginBottom: 12,
+  },
+  backBtnLargeText: { fontSize: 13, color: C.primary, fontWeight: '800' },
 
   // Screen
   screenContent: { flex: 1, padding: 16 },
   pageLabel: { fontSize: 10, color: C.textLight, fontWeight: '600', letterSpacing: 1.5, marginBottom: 2 },
   pageTitle: { fontSize: 22, fontWeight: '800', color: C.navy, letterSpacing: -0.5, marginBottom: 2 },
   pageSubtitle: { fontSize: 12, color: C.textMid, marginBottom: 16, lineHeight: 17 },
+  detailSummaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 4 },
+  detailSummaryCard: {
+    flex: 1,
+    minWidth: 120,
+    backgroundColor: C.bg,
+    borderRadius: 10,
+    padding: 12,
+  },
+  detailSummaryLabel: { fontSize: 10, color: C.textLight, fontWeight: '700', letterSpacing: 0.6, marginBottom: 4 },
+  detailSummaryValue: { fontSize: 20, color: C.navy, fontWeight: '900' },
+  detailListItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10 },
+  detailBullet: { fontSize: 18, lineHeight: 20, color: C.primary, marginRight: 8, marginTop: -1 },
+  detailListText: { flex: 1, fontSize: 13, color: C.textMid, lineHeight: 18 },
 
   // Cards
   card: {
     backgroundColor: C.white, borderRadius: 12, padding: 14, marginBottom: 14,
     ...C.cardShadow,
   },
+  touchCard: { overflow: 'hidden' },
 
   // Row
   row: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 10 },

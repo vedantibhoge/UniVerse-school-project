@@ -66,9 +66,17 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** White card with subtle shadow */
-const Card = ({ children, style }) => (
-  <View style={[sh.card, style]}>{children}</View>
-);
+const Card = ({ children, style, onPress }) => {
+  if (onPress) {
+    return (
+      <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[sh.card, sh.touchableCard, style]}>
+        {children}
+      </TouchableOpacity>
+    );
+  }
+
+  return <View style={[sh.card, style]}>{children}</View>;
+};
 
 /** Section heading + optional subtitle */
 const SectionHeader = ({ title, subtitle }) => (
@@ -79,14 +87,14 @@ const SectionHeader = ({ title, subtitle }) => (
 );
 
 /** KPI metric tile — used in horizontal scroll rows */
-const KPICard = ({ label, value, sub, subColor, icon }) => (
-  <View style={sh.kpiCard}>
+const KPICard = ({ label, value, sub, subColor, icon, onPress }) => (
+  <TouchableOpacity activeOpacity={0.8} onPress={onPress} style={[sh.kpiCard, sh.touchableCard]}>
     <Text style={sh.kpiLabel}>{label}</Text>
     <Text style={sh.kpiValue}>{value}</Text>
     {!!sub && (
       <Text style={[sh.kpiSub, { color: subColor ?? C.success }]}>{sub}</Text>
     )}
-  </View>
+  </TouchableOpacity>
 );
 
 /** Colored pill / badge */
@@ -232,6 +240,239 @@ const AlertRow = ({ emoji, title, desc, bg, borderColor, style }) => (
   </View>
 );
 
+const DETAIL_PAGES = {
+  netProfit: {
+    title: 'Net Profit',
+    subtitle: 'Net profit overview with drivers and branch context.',
+    summary: [
+      { label: 'Net Profit', value: '$1,420,800' },
+      { label: 'Growth', value: '+12.4%' },
+      { label: 'Health', value: 'Strong' },
+    ],
+    listTitle: 'Profit Drivers',
+    items: [
+      'Tuition collections are the primary contributor to net profit.',
+      'Operating cost control is keeping margins stable.',
+      'East Valley Heights is currently the best-performing branch.',
+    ],
+  },
+  totalRevenue: {
+    title: 'Total Revenue',
+    subtitle: 'Revenue collections and income sources across the fiscal year.',
+    summary: [
+      { label: 'Total Revenue', value: '$4,850,200' },
+      { label: 'Growth', value: '+8.1%' },
+      { label: 'Collection Rate', value: '94.2%' },
+    ],
+    listTitle: 'Revenue List',
+    items: [
+      'Tuition fees remain the largest source of income.',
+      'Ancillary revenue continues to support cash flow.',
+      'Monthly collections are tracking above the prior term.',
+    ],
+  },
+  operatingExpenses: {
+    title: 'Operating Expenses',
+    subtitle: 'Expense control and spending pressure review.',
+    summary: [
+      { label: 'Operating Expenses', value: '$3,429,400' },
+      { label: 'Increase', value: '+4.2%' },
+      { label: 'Status', value: 'Monitor' },
+    ],
+    listTitle: 'Expense List',
+    items: [
+      'Payroll remains the highest cost category.',
+      'Infrastructure and maintenance are rising this quarter.',
+      'Expense allocation should be reviewed branch by branch.',
+    ],
+  },
+  pendingCollections: {
+    title: 'Pending Collections',
+    subtitle: 'Outstanding balances and overdue collection follow-up.',
+    summary: [
+      { label: 'Pending Collections', value: '$215,600' },
+      { label: 'Overdue Cases', value: '18' },
+      { label: 'Priority', value: 'High' },
+    ],
+    listTitle: 'Pending List',
+    items: [
+      '18 accounts are flagged for overdue follow-up.',
+      'Late payment reminders should be sent today.',
+      'Collection recovery is required for all aged balances.',
+    ],
+  },
+  profitLoss: {
+    title: 'Profit & Loss Performance',
+    subtitle: 'Scrollable P&L trend view for income vs expenses.',
+    summary: [
+      { label: 'Income', value: '$4.85M' },
+      { label: 'Expenses', value: '$3.43M' },
+      { label: 'Net', value: '$1.42M' },
+    ],
+    listTitle: 'P&L Notes',
+    items: [
+      'Income trend is stronger than the previous fiscal period.',
+      'Expenses are rising but remain within management range.',
+      'Scroll further for branch-by-branch impact views.',
+    ],
+  },
+  expenseAllocation: {
+    title: 'Expense Allocation',
+    subtitle: 'Quarterly breakdown of spending categories.',
+    summary: [
+      { label: 'Staff Salaries', value: '60%' },
+      { label: 'Infrastructure', value: '25%' },
+      { label: 'Academic Materials', value: '15%' },
+    ],
+    listTitle: 'Allocation Breakdown',
+    items: [
+      'Staff salaries represent the largest share of spend.',
+      'Infrastructure allocation remains under quarterly watch.',
+      'Academic materials are stable and predictable.',
+    ],
+  },
+  branchRevenueComparison: {
+    title: 'Branch Revenue Comparison',
+    subtitle: 'Detailed branch-by-branch revenue performance.',
+    summary: [
+      { label: 'Branches', value: '3' },
+      { label: 'Top Margin', value: '38.9%' },
+      { label: 'Status', value: 'Comparative' },
+    ],
+    listTitle: 'Branch List',
+    items: [
+      'Central Academy – Metropolis: highest tuition base.',
+      'Southside Regional – Harbor View: stable operating margin.',
+      'East Valley Heights – Foothills: best margin performance.',
+    ],
+  },
+  trajectory: {
+    title: 'Financial Trajectory',
+    subtitle: 'Long-term projection and risk outlook.',
+    summary: [
+      { label: 'Projected Revenue', value: '$12.48M' },
+      { label: 'EBITDA Margin', value: '22.4%' },
+      { label: 'Liquidity', value: '$3.15M' },
+    ],
+    listTitle: 'Trajectory Notes',
+    items: [
+      'Forecast indicates stable compounding growth.',
+      'Margin improvement is the priority for next quarter.',
+      'Liquidity remains at a healthy level for operations.',
+    ],
+  },
+  revenue: {
+    title: 'Revenue Analytics',
+    subtitle: 'Income sources, collections, and ledger activity.',
+    summary: [
+      { label: 'Annual Revenue', value: '$4.82M' },
+      { label: 'Collection Rate', value: '94.2%' },
+      { label: 'Pending Tuition', value: '$284.1K' },
+    ],
+    listTitle: 'Revenue Activity',
+    items: [
+      'Tuition remains the dominant source of revenue.',
+      'Monthly trends show a strong recovery pattern.',
+      'High-value settlements are available below.',
+    ],
+  },
+  expenditure: {
+    title: 'Expenditure Overview',
+    subtitle: 'Annual spending, utilization, and audit-ready records.',
+    summary: [
+      { label: 'Annual Expenditure', value: '$2.48M' },
+      { label: 'Change', value: '+1.2%' },
+      { label: 'Audit', value: 'Ready' },
+    ],
+    listTitle: 'Expenditure Notes',
+    items: [
+      'Salaries account for the largest expense line.',
+      'Infrastructure spend is slightly above forecast.',
+      'Historical ledger records remain available.',
+    ],
+  },
+  branches: {
+    title: 'All Branches',
+    subtitle: 'Extended branch list with revenue and margin context.',
+    summary: [
+      { label: 'Branches', value: '12' },
+      { label: 'Top Tier', value: 'Tier 1' },
+      { label: 'Coverage', value: 'All Campuses' },
+    ],
+    listTitle: 'Branch List',
+    items: [
+      'Central Academy – Metropolis',
+      'Southside Regional – Harbor View',
+      'East Valley Heights – Foothills',
+      'North Campus Annex',
+      'West District Preparatory',
+    ],
+  },
+  transactions: {
+    title: 'All Transactions',
+    subtitle: 'Scrollable transaction ledger for revenue receipts.',
+    summary: [
+      { label: 'Transactions', value: '3' },
+      { label: 'Verified', value: '3' },
+      { label: 'Amount', value: '$33.1K' },
+    ],
+    listTitle: 'Transaction List',
+    items: [
+      'TXN-90283 · James Anderson · $12,450.00',
+      'TXN-90244 · Sophia Martinez · $8,200.00',
+      'TXN-90198 · Liam Nguyen · $12,450.00',
+    ],
+  },
+  historicalLedger: {
+    title: 'Historical Ledger',
+    subtitle: 'Archived high-value records for audit review.',
+    summary: [
+      { label: 'Ledger Records', value: '3' },
+      { label: 'Audit Status', value: 'Ready' },
+      { label: 'Threshold', value: '$5K+' },
+    ],
+    listTitle: 'Ledger List',
+    items: [
+      'Recent high-value settlements are captured here.',
+      'Ledger items are ready for export or review.',
+      'Use this page for scrollable history inspection.',
+    ],
+  },
+};
+
+const DetailPage = ({ page, onBack, children }) => (
+  <ScrollView style={sh.screen} showsVerticalScrollIndicator={false}>
+    <TouchableOpacity activeOpacity={0.8} onPress={onBack} style={sh.backBtn}>
+      <Text style={sh.backBtnText}>‹ Back</Text>
+    </TouchableOpacity>
+    <Card style={{ marginBottom: 16 }}>
+      <Text style={{ fontSize: 10, color: C.sub, fontWeight: '800', letterSpacing: 0.8 }}>ACADEMY FINANCE</Text>
+      <Text style={{ fontSize: 24, fontWeight: '900', color: C.text, marginTop: 4 }}>{page.title}</Text>
+      <Text style={{ fontSize: 12, color: C.sub, marginTop: 3, lineHeight: 17 }}>{page.subtitle}</Text>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 }}>
+        {page.summary.map((item) => (
+          <View key={item.label} style={sh.detailTile}>
+            <Text style={sh.detailTileLabel}>{item.label}</Text>
+            <Text style={sh.detailTileValue}>{item.value}</Text>
+          </View>
+        ))}
+      </View>
+    </Card>
+    {children}
+    <Card style={{ marginBottom: 24 }}>
+      <Text style={sh.sectionTitle}>{page.listTitle || 'Details'}</Text>
+      <View style={{ marginTop: 10, gap: 10 }}>
+        {page.items.map((item, index) => (
+          <View key={`${page.title}-${index}`} style={sh.detailRow}>
+            <View style={sh.detailDot} />
+            <Text style={sh.detailText}>{item}</Text>
+          </View>
+        ))}
+      </View>
+    </Card>
+  </ScrollView>
+);
+
 /** Shared top header bar (back button optional) */
 const HeaderBar = ({ title, subtitle, onBack, rightSlot }) => (
   <View style={sh.headerBar}>
@@ -301,26 +542,26 @@ const MainDashboard = ({ onNavigate }) => {
 
   return (
     <ScrollView style={sh.screen} showsVerticalScrollIndicator={false}>
-      {/* ── Header ── */}
-      <HeaderBar
-        title="Academy Finance"
-        subtitle="Fiscal Overview · 2024"
-        rightSlot={
-          <View style={sh.avatarCircle}>
-            <Text style={{ color: '#fff', fontWeight: '700', fontSize: 13 }}>AD</Text>
-          </View>
-        }
-      />
-
       {/* ── KPI Row ── */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 16 }}>
-        {kpis.map((k, i) => <KPICard key={i} {...k} />)}
+        {kpis.map((k, i) => (
+          <KPICard
+            key={i}
+            {...k}
+            onPress={() => onNavigate(
+              k.label === 'NET PROFIT' ? 'netProfit'
+                : k.label === 'TOTAL REVENUE' ? 'totalRevenue'
+                : k.label === 'OPERATING EXPENSES' ? 'operatingExpenses'
+                : 'pendingCollections'
+            )}
+          />
+        ))}
       </ScrollView>
 
       {/* ── P&L + Expense Allocation ── */}
       <View style={{ flexDirection: 'row', gap: 12, marginBottom: 16 }}>
         {/* P&L chart */}
-        <Card style={{ flex: 2 }}>
+        <Card style={{ flex: 2 }} onPress={() => onNavigate('profitLoss')}>
           <SectionHeader
             title="Profit & Loss Performance"
             subtitle="Fiscal Year: Income vs Expenses"
@@ -345,7 +586,7 @@ const MainDashboard = ({ onNavigate }) => {
         </Card>
 
         {/* Expense donut */}
-        <Card style={{ flex: 1.3 }}>
+        <Card style={{ flex: 1.3 }} onPress={() => onNavigate('expenseAllocation')}>
           <SectionHeader title="Expense Allocation" subtitle="Quarterly Breakdown" />
           <DonutChart
             centerLabel="$3.4M"
@@ -361,7 +602,7 @@ const MainDashboard = ({ onNavigate }) => {
       </View>
 
       {/* ── Branch Revenue Comparison ── */}
-      <Card style={{ marginBottom: 16 }}>
+      <Card style={{ marginBottom: 16 }} onPress={() => onNavigate('branchRevenueComparison')}>
         <SectionHeader
           title="Branch Revenue Comparison"
           subtitle="Performance metrics across major campuses"
@@ -396,7 +637,7 @@ const MainDashboard = ({ onNavigate }) => {
           </View>
         ))}
 
-        <TouchableOpacity style={sh.viewAllBtn}>
+        <TouchableOpacity style={sh.viewAllBtn} onPress={() => onNavigate('branches')} activeOpacity={0.8}>
           <Text style={{ color: C.primary, fontWeight: '700', fontSize: 13 }}>VIEW ALL 12 BRANCHES</Text>
         </TouchableOpacity>
       </Card>
@@ -645,7 +886,7 @@ const RevenueScreen = ({ onBack }) => {
       <Card style={{ marginBottom: 36 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
           <SectionHeader title="Recent High-Value Settlements" subtitle="" />
-          <TouchableOpacity>
+          <TouchableOpacity onPress={() => setScreen('transactions')}>
             <Text style={{ color: C.primary, fontSize: 12, fontWeight: '700' }}>Download Ledger ↓</Text>
           </TouchableOpacity>
         </View>
@@ -668,7 +909,7 @@ const RevenueScreen = ({ onBack }) => {
           </View>
         ))}
 
-        <TouchableOpacity style={sh.viewAllBtn}>
+        <TouchableOpacity style={sh.viewAllBtn} onPress={() => setScreen('transactions')} activeOpacity={0.8}>
           <Text style={{ color: C.primary, fontWeight: '700', fontSize: 13 }}>VIEW ALL TRANSACTIONS</Text>
         </TouchableOpacity>
       </Card>
@@ -795,6 +1036,7 @@ const ExpenditureScreen = ({ onBack }) => {
             <TouchableOpacity
               style={[sh.badge, { backgroundColor: C.success, marginTop: 10, alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 6 }]}
               activeOpacity={0.8}
+              onPress={() => setScreen('historicalLedger')}
             >
               <Text style={{ color: '#fff', fontSize: 10, fontWeight: '800' }}>VIEW CERTIFICATE</Text>
             </TouchableOpacity>
@@ -841,7 +1083,7 @@ const ExpenditureScreen = ({ onBack }) => {
             <Text style={[sh.tableCell, { color: C.danger, fontWeight: '800', fontSize: 11 }]}>{t.amount}</Text>
           </View>
         ))}
-
+ onPress={() => setScreen('historicalLedger')} activeOpacity={0.8}
         <TouchableOpacity style={sh.viewAllBtn}>
           <Text style={{ color: C.primary, fontWeight: '700', fontSize: 13 }}>
             VIEW ALL HISTORICAL LEDGER RECORDS
@@ -873,8 +1115,61 @@ const ExpenditureScreen = ({ onBack }) => {
 export default function Finance() {
   const [screen, setScreen] = useState('main');
 
-  const goTo   = (s) => setScreen(s);
-  const goBack = ()  => setScreen('main');
+  const goTo = (nextScreen) => setScreen(nextScreen);
+  const goBack = () => setScreen('main');
+
+  const renderScreen = () => {
+    if (screen === 'main') return <MainDashboard onNavigate={goTo} />;
+    if (screen === 'trajectory') return <TrajectoryScreen onBack={goBack} />;
+    if (screen === 'revenue') return <RevenueScreen onBack={goBack} />;
+    if (screen === 'expenditure') return <ExpenditureScreen onBack={goBack} />;
+    if (screen === 'netProfit') return <DetailPage page={DETAIL_PAGES.netProfit} onBack={goBack} />;
+    if (screen === 'totalRevenue') return <DetailPage page={DETAIL_PAGES.totalRevenue} onBack={goBack} />;
+    if (screen === 'operatingExpenses') return <DetailPage page={DETAIL_PAGES.operatingExpenses} onBack={goBack} />;
+    if (screen === 'pendingCollections') return <DetailPage page={DETAIL_PAGES.pendingCollections} onBack={goBack} />;
+    if (screen === 'profitLoss') {
+      return (
+        <DetailPage page={DETAIL_PAGES.profitLoss} onBack={goBack}>
+          <Card style={{ marginBottom: 16 }}>
+            <SectionHeader title="Profit & Loss Performance" subtitle="Fiscal Year: Income vs Expenses" />
+            <View style={{ height: 80, flexDirection: 'row', alignItems: 'flex-end', gap: 2 }}>
+              {['J','F','M','A','M','J','J','A','S','O','N','D'].map((m, i) => (
+                <View key={i} style={{ flex: 1, alignItems: 'center', gap: 1 }}>
+                  <View style={{ width: 4, height: [40,50,45,60,55,70,65,75,80,70,85,90][i] * 0.65, backgroundColor: C.primary, borderRadius: 2 }} />
+                  <View style={{ width: 4, height: [35,40,38,50,45,55,52,60,65,58,70,72][i] * 0.65, backgroundColor: C.primaryLight, borderRadius: 2 }} />
+                  <Text style={{ fontSize: 6, color: C.sub }}>{m}</Text>
+                </View>
+              ))}
+            </View>
+          </Card>
+        </DetailPage>
+      );
+    }
+    if (screen === 'expenseAllocation') {
+      return (
+        <DetailPage page={DETAIL_PAGES.expenseAllocation} onBack={goBack}>
+          <Card style={{ marginBottom: 16 }}>
+            <SectionHeader title="Expense Allocation" subtitle="Quarterly Breakdown" />
+            <DonutChart
+              centerLabel="$3.4M"
+              centerSub="TOTAL OPS"
+              size={120}
+              segments={[
+                { color: C.primary, label: 'Staff Salaries', pct: 60 },
+                { color: C.blue2, label: 'Infrastructure', pct: 25 },
+                { color: C.accent, label: 'Academic Materials', pct: 15 },
+              ]}
+            />
+          </Card>
+        </DetailPage>
+      );
+    }
+    if (screen === 'branchRevenueComparison') return <DetailPage page={DETAIL_PAGES.branchRevenueComparison} onBack={goBack} />;
+    if (screen === 'branches') return <DetailPage page={DETAIL_PAGES.branches} onBack={goBack} />;
+    if (screen === 'transactions') return <DetailPage page={DETAIL_PAGES.transactions} onBack={goBack} />;
+    if (screen === 'historicalLedger') return <DetailPage page={DETAIL_PAGES.historicalLedger} onBack={goBack} />;
+    return <MainDashboard onNavigate={goTo} />;
+  };
 
   return (
     <SafeAreaView style={sh.root}>
@@ -883,10 +1178,7 @@ export default function Finance() {
         backgroundColor={C.bg}
         translucent={false}
       />
-      {screen === 'main'        && <MainDashboard   onNavigate={goTo} />}
-      {screen === 'trajectory'  && <TrajectoryScreen onBack={goBack}  />}
-      {screen === 'revenue'     && <RevenueScreen    onBack={goBack}  />}
-      {screen === 'expenditure' && <ExpenditureScreen onBack={goBack} />}
+      {renderScreen()}
     </SafeAreaView>
   );
 }
