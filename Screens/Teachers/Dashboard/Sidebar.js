@@ -150,7 +150,7 @@ const OverlaySidebar = ({ visible, onClose, activeItem, onNavigate, onLogout }) 
   if (!visible) return null;
 
   return (
-    <View style={styles.overlayContainer} pointerEvents="box-none">
+    <View style={[styles.overlayContainer, { pointerEvents: 'box-none' }]}>
       <TouchableOpacity
         style={StyleSheet.absoluteFill}
         activeOpacity={1}

@@ -11,6 +11,7 @@ import {
   Alert,
   Linking,
   Dimensions,
+  Platform,
 } from 'react-native';
 
 const { width } = Dimensions.get('window');
@@ -28,6 +29,7 @@ export default function Login({ navigation }) {
     parent: { email: '12345', password: '12345', route: 'ParentSidebar' },
     teacher: { email: '1234', password: '1234', route: 'TeacherSidebar' },
     account: { email: 'a', password: 'a', route: 'AccountSidebar' },
+    director: { email: 'd', password: 'd', route: 'DirectorSidebar' },
   };
 
   const handleSignIn = () => {
@@ -45,6 +47,8 @@ export default function Login({ navigation }) {
       navigation.replace(CREDENTIALS.teacher.route);
     } else if (email === CREDENTIALS.account.email && password === CREDENTIALS.account.password) {
       navigation.replace(CREDENTIALS.account.route);
+    } else if (email === CREDENTIALS.director.email && password === CREDENTIALS.director.password) {
+      navigation.replace(CREDENTIALS.director.route);
     } else {
       Alert.alert('Login Failed', 'Invalid email or password.');
     }
@@ -231,16 +235,18 @@ const styles = StyleSheet.create({
   logoContainer: {
     width: 72, height: 72, borderRadius: 16, backgroundColor: '#FFFFFF',
     alignItems: 'center', justifyContent: 'center', marginBottom: 20,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08, shadowRadius: 8, elevation: 4,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }
+      : { shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 4 }),
   },
   logoIcon: { fontSize: 36 },
   title: { fontSize: isTablet ? 36 : 32, fontWeight: '800', color: '#1A1A2E', letterSpacing: -0.5, marginBottom: 8 },
   subtitle: { fontSize: 15, color: '#666880', textAlign: 'center', lineHeight: 22 },
   card: {
     backgroundColor: '#FFFFFF', borderRadius: 20, padding: 28,
-    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08, shadowRadius: 16, elevation: 6, marginBottom: 28,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 4px 16px rgba(0,0,0,0.08)', marginBottom: 28 }
+      : { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 16, elevation: 6, marginBottom: 28 }),
   },
   cardTablet: { width: 480, padding: 40 },
   label: { fontSize: 12, fontWeight: 'bold', color: '#1A1A2E', letterSpacing: 1, marginBottom: 8 },
@@ -266,8 +272,9 @@ const styles = StyleSheet.create({
   signInButton: {
     backgroundColor: '#1B3FA0', borderRadius: 14, height: 56,
     alignItems: 'center', justifyContent: 'center',
-    shadowColor: '#1B3FA0', shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35, shadowRadius: 10, elevation: 6,
+    ...(Platform.OS === 'web'
+      ? { boxShadow: '0 6px 18px rgba(27,63,160,0.18)' }
+      : { shadowColor: '#1B3FA0', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.35, shadowRadius: 10, elevation: 6 }),
   },
   signInText: { color: '#FFFFFF', fontSize: 17, fontWeight: 'bold', letterSpacing: 0.3 },
   divider: { height: 1, backgroundColor: '#EBEBEB', marginVertical: 24 },
