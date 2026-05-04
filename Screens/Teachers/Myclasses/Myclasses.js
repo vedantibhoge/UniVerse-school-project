@@ -66,9 +66,15 @@ const getLetterGrade = (score) => {
 
 export default function Myclasses() {
 	const [classes, setClasses] = useState(INITIAL_CLASSES);
-	const [viewMode, setViewMode] = useState('grid');
-	const [resultTitle, setResultTitle] = useState('Tap a card to view details');
-	const [resultRows, setResultRows] = useState([]);
+	const [viewMode, setViewMode] = useState('list');
+	// Active students collapse state (single common arrow)
+	const [activeStudentsOpen, setActiveStudentsOpen] = useState(false);
+	const [activeStudentsRows, setActiveStudentsRows] = useState([]);
+
+	// Main results (attendance / today's classes / selected class)
+	const [mainResultTitle, setMainResultTitle] = useState('');
+	const [mainResultRows, setMainResultRows] = useState([]);
+	const [expandedItems, setExpandedItems] = useState({});
 	const [showNewClassForm, setShowNewClassForm] = useState(false);
 
 	const todayShort = WEEKDAY_SHORT[new Date().getDay()];
@@ -89,6 +95,11 @@ export default function Myclasses() {
 		[classes, todayShort]
 	);
 
+	const isClassResult = useMemo(
+		() => classes.some((c) => `${c.grade} ${c.subject}` === mainResultTitle),
+		[classes, mainResultTitle]
+	);
+
 	const showActiveStudentsList = () => {
 		const rows = [];
 		classes.forEach((classItem) => {
@@ -97,8 +108,9 @@ export default function Myclasses() {
 			});
 		});
 
-		setResultTitle('Active Students List (Only Your Classes)');
-		setResultRows(rows);
+		setActiveStudentsRows(rows);
+		// toggle the single common arrow panel
+		setActiveStudentsOpen((v) => !v);
 	};
 
 	const showAverageAttendanceList = () => {
@@ -106,10 +118,11 @@ export default function Myclasses() {
 			const value = getClassAttendance(classItem.students).toFixed(1);
 			return `${classItem.grade} ${classItem.subject}: ${value}%`;
 		});
-		rows.unshift(`Overall Average Attendance: ${averageAttendance.toFixed(1)}%`);
+		rows.unshift(`Overall: ${averageAttendance.toFixed(1)}%`);
 
-		setResultTitle('Average Attendance List');
-		setResultRows(rows);
+		setMainResultTitle('Attendance');
+		setMainResultRows(rows);
+		setExpandedItems({});
 	};
 
 	const showTodayClassesList = () => {
@@ -117,29 +130,34 @@ export default function Myclasses() {
 			(classItem) => `${classItem.grade} ${classItem.subject} - ${classItem.room}`
 		);
 
-		setResultTitle(`Classes You Teach Today (${todayShort})`);
-		setResultRows(rows.length ? rows : ['No class scheduled today.']);
+		setMainResultTitle(`Today's Classes`);
+		setMainResultRows(rows.length ? rows : ['No class scheduled today.']);
+		setExpandedItems({});
 	};
 
 	const showClassOverallGrades = (classItem) => {
-		const average = getClassAttendance(classItem.students).toFixed(1);
-		const rows = [
-			`${classItem.grade} ${classItem.subject} - Class Average: ${average}%`,
-			...classItem.students.map(
-				(student) =>
-					`${student.name} (${student.rollNo}) - ${student.overall}% (${getLetterGrade(student.overall)})`
-			),
-		];
+		const rows = classItem.students.map(
+			(student) => `${student.name} (${student.rollNo}) - ${student.overall}% (${getLetterGrade(student.overall)})`
+		);
 
-		setResultTitle(`${classItem.grade} Overall Grades`);
-		setResultRows(rows);
+		// Open in the MAIN results panel (not the Active Students panel)
+		setMainResultTitle(`${classItem.grade} ${classItem.subject}`);
+		setMainResultRows(rows);
+		setExpandedItems({});
+	};
+
+	const toggleExpanded = (index) => {
+		setExpandedItems((prev) => ({
+			...prev,
+			[index]: !prev[index],
+		}));
 	};
 
 	const handleCreateNewClass = (newClass) => {
 		setClasses((prev) => [newClass, ...prev]);
 		setShowNewClassForm(false);
-		setResultTitle('New Class Created');
-		setResultRows([
+		setMainResultTitle('New Class Created');
+		setMainResultRows([
 			`${newClass.grade} ${newClass.subject}`,
 			`Room: ${newClass.room}`,
 			`Schedule: ${newClass.schedule.join(', ')}`,
@@ -160,88 +178,103 @@ export default function Myclasses() {
 			<ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
 				<View style={styles.statsRow}>
 					<TouchableOpacity style={styles.statCard} activeOpacity={0.9} onPress={showActiveStudentsList}>
-						<Text style={styles.statLabel}>TOTAL ACTIVE STUDENTS</Text>
+						<Text style={styles.statLabel}>STUDENTS</Text>
 						<Text style={styles.statValue}>{totalActiveStudents}</Text>
-						<Text style={styles.statMeta}>Tap to view class student list</Text>
 					</TouchableOpacity>
 
 					<TouchableOpacity style={styles.statCard} activeOpacity={0.9} onPress={showAverageAttendanceList}>
-						<Text style={styles.statLabel}>AVERAGE ATTENDANCE</Text>
+						<Text style={styles.statLabel}>ATTENDANCE</Text>
 						<Text style={styles.statValue}>{averageAttendance.toFixed(1)}%</Text>
-						<Text style={styles.statMeta}>Tap to view attendance list</Text>
 					</TouchableOpacity>
 
 					<TouchableOpacity style={styles.statCard} activeOpacity={0.9} onPress={showTodayClassesList}>
-						<Text style={styles.statLabel}>CLASSES TODAY</Text>
+						<Text style={styles.statLabel}>TODAY</Text>
 						<Text style={styles.statValue}>{todayClasses.length}</Text>
-						<Text style={styles.statMeta}>Tap to view today's class list</Text>
 					</TouchableOpacity>
 				</View>
 
-				<View style={styles.resultPanel}>
-					<Text style={styles.resultTitle}>{resultTitle}</Text>
-					{resultRows.length ? (
-						resultRows.map((row, idx) => (
-							<Text key={`${row}-${idx}`} style={styles.resultItem}>
-								{idx + 1}. {row}
-							</Text>
-						))
-					) : (
-						<Text style={styles.resultEmpty}>No data yet.</Text>
-					)}
+				{/* Active Students compact toggle (single arrow) */}
+				<View style={styles.activeHeaderRow}>
+					<TouchableOpacity style={styles.activeToggle} onPress={showActiveStudentsList} activeOpacity={0.8}>
+						<Text style={styles.activeLabel}>Active Students</Text>
+						<Text style={styles.expandArrow}>{activeStudentsOpen ? '▼' : '▶'}</Text>
+					</TouchableOpacity>
 				</View>
+
+				{activeStudentsOpen && (
+					<View style={styles.activePanel}>
+						{activeStudentsRows.length > 0 ? (
+							activeStudentsRows.map((row, idx) => (
+								<Text key={`${row}-${idx}`} style={styles.activeItem}>
+									{idx + 1}. {row}
+								</Text>
+							))
+						) : (
+							<Text style={styles.resultEmpty}>No students</Text>
+						)}
+					</View>
+				)}
+
+				{/* Main results panel (attendance / today's classes / selected class) */}
+				{mainResultTitle ? (
+					<View style={styles.resultPanel}>
+						<Text style={styles.resultTitle}>{mainResultTitle}</Text>
+						{mainResultRows.length ? (
+							mainResultRows.map((row, idx) => (
+								isClassResult ? (
+									<Text key={`${row}-${idx}`} style={styles.resultPlain}>
+										{idx + 1}. {row}
+									</Text>
+								) : (
+									<TouchableOpacity
+										key={`${row}-${idx}`}
+										onPress={() => toggleExpanded(idx)}
+										style={styles.resultItemWrapper}
+										activeOpacity={0.7}
+									>
+										<Text style={styles.resultItem}>{row}</Text>
+										<Text style={styles.expandArrow}>{expandedItems[idx] ? '▼' : '▶'}</Text>
+									</TouchableOpacity>
+								)
+							))
+						) : (
+							<Text style={styles.resultEmpty}>No data</Text>
+						)}
+					</View>
+				) : null}
 
 				<View style={styles.headerRow}>
 					<View>
 						<Text style={styles.title}>My Classes</Text>
-						<Text style={styles.subtitle}>Tap a class card to see overall grades</Text>
-					</View>
-					<View style={styles.switchRow}>
-						<TouchableOpacity
-							style={[styles.switchBtn, viewMode === 'grid' && styles.switchBtnActive]}
-							activeOpacity={0.9}
-							onPress={() => setViewMode('grid')}
-						>
-							<Text style={[styles.switchText, viewMode === 'grid' && styles.switchTextActive]}>Grid View</Text>
-						</TouchableOpacity>
-						<TouchableOpacity
-							style={[styles.switchBtn, viewMode === 'list' && styles.switchBtnActive]}
-							activeOpacity={0.9}
-							onPress={() => setViewMode('list')}
-						>
-							<Text style={[styles.switchText, viewMode === 'list' && styles.switchTextActive]}>List View</Text>
-						</TouchableOpacity>
 					</View>
 				</View>
 
-				<View style={viewMode === 'grid' ? styles.grid : styles.list}>
+				<View style={styles.list}>
 					{classes.map((classItem) => (
 						<TouchableOpacity
 							key={classItem.id}
-							style={[styles.classCard, viewMode === 'list' && styles.classCardList]}
+							style={styles.classCard}
 							activeOpacity={0.9}
 							onPress={() => showClassOverallGrades(classItem)}
 						>
 							<View style={styles.cardTop}>
-								<Text style={styles.classTitle}>{classItem.grade}</Text>
+								<View>
+									<Text style={styles.classTitle}>{classItem.grade}</Text>
+									<Text style={styles.classSubject}>{classItem.subject}</Text>
+								</View>
 								<Text style={styles.classRoom}>{classItem.room}</Text>
 							</View>
-							<Text style={styles.classSubject}>{classItem.subject}</Text>
-							<Text style={styles.classMeta}>Students: {classItem.students.length}</Text>
-							<Text style={styles.classMeta}>Schedule: {classItem.schedule.join(', ')}</Text>
-							<View style={styles.cardHintWrap}>
-								<Text style={styles.cardHint}>Tap to view overall grades</Text>
-							</View>
+							<Text style={styles.classMeta}>👥 {classItem.students.length} students</Text>
+							<Text style={styles.classMeta}>📅 {classItem.schedule.join(', ')}</Text>
 						</TouchableOpacity>
 					))}
 
 					<TouchableOpacity
-						style={[styles.classCard, styles.addCard, viewMode === 'list' && styles.classCardList]}
+						style={[styles.classCard, styles.addCard]}
 						activeOpacity={0.9}
 						onPress={() => setShowNewClassForm(true)}
 					>
-						<Text style={styles.addTitle}>Assign New Class</Text>
-						<Text style={styles.addSubtitle}>Tap to open new class form</Text>
+						<Text style={styles.addTitle}>+ New Class</Text>
 					</TouchableOpacity>
 				</View>
 			</ScrollView>
@@ -250,72 +283,88 @@ export default function Myclasses() {
 }
 
 const styles = StyleSheet.create({
-	container: { flex: 1, backgroundColor: '#EEF2F7' },
+	container: { flex: 1, backgroundColor: '#F8FAFC' },
 	content: { padding: 14, paddingBottom: 24 },
-	statsRow: { flexDirection: 'row', gap: 10, marginBottom: 14 },
+	statsRow: { flexDirection: 'row', gap: 10, marginBottom: 16 },
 	statCard: {
 		flex: 1,
 		backgroundColor: '#FFFFFF',
-		borderRadius: 12,
-		padding: 12,
-		shadowColor: '#0F172A',
-		shadowOffset: { width: 0, height: 2 },
-		shadowOpacity: 0.06,
-		shadowRadius: 4,
+		borderRadius: 10,
+		padding: 14,
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.05,
+		shadowRadius: 3,
 		elevation: 2,
 	},
-	statLabel: { fontSize: 10, color: '#7D8798', fontWeight: '700', marginBottom: 6 },
-	statValue: { fontSize: 28, color: '#1A1A2E', fontWeight: '800', marginBottom: 4 },
+	statLabel: { fontSize: 9, color: '#94A3B8', fontWeight: '700', marginBottom: 8, letterSpacing: 0.5 },
+	statValue: { fontSize: 26, color: '#1E293B', fontWeight: '800' },
 	statMeta: { fontSize: 11, color: '#4B6B9D', fontWeight: '600' },
 
 	resultPanel: {
 		backgroundColor: '#FFFFFF',
-		borderRadius: 12,
-		padding: 12,
-		marginBottom: 14,
+		borderRadius: 10,
+		padding: 14,
+		marginBottom: 16,
 		borderWidth: 1,
-		borderColor: '#DEE6F2',
+		borderColor: '#E2E8F0',
 	},
-	resultTitle: { fontSize: 13, color: '#1A1A2E', fontWeight: '800', marginBottom: 8 },
-	resultItem: { fontSize: 12, color: '#475569', lineHeight: 19, marginBottom: 4 },
-	resultEmpty: { fontSize: 12, color: '#64748B' },
+	resultTitle: { fontSize: 14, color: '#1E293B', fontWeight: '700', marginBottom: 12 },
+	resultItemWrapper: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		justifyContent: 'space-between',
+		paddingVertical: 10,
+		paddingHorizontal: 10,
+		marginBottom: 6,
+		backgroundColor: '#F8FAFC',
+		borderRadius: 8,
+	},
+	resultItem: { fontSize: 12, color: '#475569', flex: 1 },
+	expandArrow: { fontSize: 12, color: '#64748B', marginLeft: 10, fontWeight: '600' },
+	resultEmpty: { fontSize: 12, color: '#94A3B8', paddingVertical: 10 },
+    resultPlain: { fontSize: 12, color: '#475569', paddingVertical: 8 },
 
 	headerRow: {
 		flexDirection: 'row',
 		alignItems: 'center',
 		justifyContent: 'space-between',
-		marginBottom: 12,
+		marginBottom: 14,
 		gap: 12,
 	},
-	title: { fontSize: 30, fontWeight: '800', color: '#1A1A2E' },
+	title: { fontSize: 28, fontWeight: '800', color: '#1E293B' },
 	subtitle: { fontSize: 12, color: '#7D8798', marginTop: 2 },
-	switchRow: { flexDirection: 'row', backgroundColor: '#FFFFFF', borderRadius: 10, padding: 4 },
-	switchBtn: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
-	switchBtnActive: { backgroundColor: '#E8EEF9' },
-	switchText: { fontSize: 11, color: '#76839A', fontWeight: '700' },
-	switchTextActive: { color: '#1B3FA0' },
+	switchRow: { flexDirection: 'row', backgroundColor: '#F1F5F9', borderRadius: 8, padding: 3 },
+	switchBtn: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
+	switchBtnActive: { backgroundColor: '#FFFFFF' },
+	switchText: { fontSize: 11, color: '#64748B', fontWeight: '600' },
+	switchTextActive: { color: '#1E293B', fontWeight: '700' },
 
 	grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
 	list: { flexDirection: 'column', gap: 10 },
 	classCard: {
 		backgroundColor: '#FFFFFF',
-		borderRadius: 14,
-		padding: 12,
-		width: '48.5%',
+		borderRadius: 10,
+		padding: 14,
+		width: '100%',
 		borderWidth: 1,
-		borderColor: '#E5EAF1',
+		borderColor: '#E2E8F0',
+		shadowColor: '#000',
+		shadowOffset: { width: 0, height: 1 },
+		shadowOpacity: 0.04,
+		shadowRadius: 3,
+		elevation: 1,
 	},
-	classCardList: { width: '100%' },
 	cardTop: {
 		flexDirection: 'row',
-		alignItems: 'center',
+		alignItems: 'flex-start',
 		justifyContent: 'space-between',
-		marginBottom: 8,
+		marginBottom: 10,
 	},
-	classTitle: { fontSize: 16, color: '#1A1A2E', fontWeight: '800' },
-	classRoom: { fontSize: 11, color: '#5E759B', fontWeight: '700' },
-	classSubject: { fontSize: 14, color: '#1A1A2E', fontWeight: '700', marginBottom: 6 },
-	classMeta: { fontSize: 11, color: '#64748B', marginBottom: 2 },
+	classTitle: { fontSize: 15, color: '#1E293B', fontWeight: '700' },
+	classRoom: { fontSize: 11, color: '#64748B', fontWeight: '600', textAlign: 'right' },
+	classSubject: { fontSize: 12, color: '#0F766E', fontWeight: '600', marginBottom: 8 },
+	classMeta: { fontSize: 11, color: '#64748B', marginBottom: 3 },
 	cardHintWrap: {
 		marginTop: 10,
 		backgroundColor: '#EEF4FF',
@@ -327,11 +376,25 @@ const styles = StyleSheet.create({
 
 	addCard: {
 		borderStyle: 'dashed',
-		borderColor: '#D6DEE9',
+		borderColor: '#CBD5E1',
 		alignItems: 'center',
 		justifyContent: 'center',
-		minHeight: 170,
+		minHeight: 120,
 	},
-	addTitle: { fontSize: 16, color: '#1A1A2E', fontWeight: '800' },
+	addTitle: { fontSize: 15, color: '#1E293B', fontWeight: '700' },
 	addSubtitle: { fontSize: 11, color: '#7D8798', marginTop: 8, textAlign: 'center' },
+	activeHeaderRow: { marginBottom: 8, flexDirection: 'row', alignItems: 'center' },
+	activeToggle: {
+		flexDirection: 'row',
+		alignItems: 'center',
+		backgroundColor: '#FFFFFF',
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		borderRadius: 10,
+		borderWidth: 1,
+		borderColor: '#E2E8F0',
+	},
+	activeLabel: { fontSize: 13, color: '#0F172A', fontWeight: '700', marginRight: 8 },
+	activePanel: { backgroundColor: '#FFFFFF', borderRadius: 10, padding: 12, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' },
+	activeItem: { fontSize: 12, color: '#475569', lineHeight: 20, marginBottom: 6 },
 });

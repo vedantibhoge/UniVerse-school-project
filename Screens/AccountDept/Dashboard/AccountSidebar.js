@@ -19,6 +19,7 @@ import SendReminders from '../SendReminders/SendReminders';
 import ReceiptsList from '../ReceiptsList/ReceiptsList';
 import TotalCollection from '../TotalCollection/TotalCollection';
 import Fees from '../Fees/Fees';
+import Settings from '../Settings/Settings';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const IS_TABLET_OR_DESKTOP = SCREEN_WIDTH >= 768;
@@ -113,6 +114,7 @@ const NAV_ITEMS = [
   { id: 'defaulters', label: 'Defaulters', Icon: DefaultersIcon },
   { id: 'send-reminders', label: 'Send Reminders', Icon: ExpensesIcon },
   { id: 'receipts', label: 'Receipts', Icon: ReportsIcon },
+  { id: 'settings', label: 'Settings', Icon: SettingsIcon },
 ];
 
 // ─── Placeholder Module Screens ───────────────────────────────────────────────
@@ -172,7 +174,7 @@ const renderModuleContent = (activeItem, onBackToDashboard, onLogout) => {
   if (activeItem === 'defaulters') return <DefaultersList onBack={onBackToDashboard} />;
   if (activeItem === 'send-reminders') return <SendReminders onBack={onBackToDashboard} />;
   if (activeItem === 'receipts') return <ReceiptsList onBack={onBackToDashboard} />;
-  if (activeItem === 'settings') return <ModulePlaceholder label="Settings" Icon={SettingsIcon} />;
+  if (activeItem === 'settings') return <Settings onBack={onBackToDashboard} />;
   const item = NAV_ITEMS.find((n) => n.id === activeItem);
   if (!item) return null;
   return <ModulePlaceholder label={item.label} Icon={item.Icon} />;
@@ -210,17 +212,19 @@ const SidebarPanel = ({ activeItem, onNavPress, onClose, onLogoutPress }) => (
       <View style={drawerStyles.nav}>
         {NAV_ITEMS.map(({ id, label, Icon }) => {
           const isActive = activeItem === id;
-          const color = isActive ? '#2563EB' : '#64748B';
+          const color = isActive ? '#2563EB' : '#475569';
           return (
             <TouchableOpacity
               key={id}
               onPress={() => onNavPress(id)}
-              activeOpacity={0.75}
+              activeOpacity={0.78}
               style={[drawerStyles.navItem, isActive && drawerStyles.navItemActive]}
             >
               {isActive && <View style={drawerStyles.activeBar} />}
-              <Icon color={color} />
-              <Text style={[drawerStyles.navLabel, { color, fontWeight: isActive ? '600' : '500' }]}>
+              <View style={[drawerStyles.iconWrap, isActive && drawerStyles.iconWrapActive]}>
+                <Icon color={isActive ? '#2563EB' : '#64748B'} />
+              </View>
+              <Text style={[drawerStyles.navLabel, { color, fontWeight: isActive ? '700' : '600' }]}>
                 {label}
               </Text>
             </TouchableOpacity>
@@ -232,10 +236,7 @@ const SidebarPanel = ({ activeItem, onNavPress, onClose, onLogoutPress }) => (
     {/* Fixed bottom actions */}
     <View style={drawerStyles.bottomSection}>
       <View style={drawerStyles.divider} />
-      <TouchableOpacity style={drawerStyles.settingsBtn} onPress={() => onNavPress('settings')} activeOpacity={0.75}>
-        <SettingsIcon />
-        <Text style={drawerStyles.settingsLabel}>Settings</Text>
-      </TouchableOpacity>
+      {/* fixed bottom Settings button removed (Settings is available in main nav) */}
       <TouchableOpacity style={drawerStyles.logoutBtn} onPress={onLogoutPress} activeOpacity={0.82}>
         <Text style={drawerStyles.logoutLabel}>Logout</Text>
       </TouchableOpacity>
@@ -361,18 +362,16 @@ const drawerStyles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
   },
-  settingsBtn: {
-    marginHorizontal: 16,
-    flexDirection: 'row',
+  iconWrap: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
     alignItems: 'center',
-    gap: 11,
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    marginTop: 10,
-    borderRadius: 12,
-    backgroundColor: '#FFFFFF',
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
+    justifyContent: 'center',
+    backgroundColor: 'transparent',
+  },
+  iconWrapActive: {
+    backgroundColor: '#EFF6FF',
   },
   settingsLabel: {
     fontSize: 13.5,
@@ -401,6 +400,18 @@ const drawerStyles = StyleSheet.create({
     fontSize: 13.5,
     fontWeight: '700',
     color: '#FFFFFF',
+  },
+  activeBar: {
+    position: 'absolute',
+    left: 0,
+    width: 4,
+    height: 34,
+    borderTopRightRadius: 3,
+    borderBottomRightRadius: 3,
+    backgroundColor: '#2563EB',
+  },
+  navItemActive: {
+    backgroundColor: '#F1F8FF',
   },
 });
 

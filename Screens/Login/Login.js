@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   StatusBar,
   Alert,
@@ -13,6 +12,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 const isTablet = width >= 768;
@@ -30,6 +30,7 @@ export default function Login({ navigation }) {
     teacher: { email: '1234', password: '1234', route: 'TeacherSidebar' },
     account: { email: 'a', password: 'a', route: 'AccountSidebar' },
     director: { email: 'd', password: 'd', route: 'DirectorSidebar' },
+    committee: { email: 'c', password: 'c', route: 'CommitteeSidebar' },
   };
 
   const handleSignIn = () => {
@@ -49,6 +50,8 @@ export default function Login({ navigation }) {
       navigation.replace(CREDENTIALS.account.route);
     } else if (email === CREDENTIALS.director.email && password === CREDENTIALS.director.password) {
       navigation.replace(CREDENTIALS.director.route);
+    } else if (email === CREDENTIALS.committee.email && password === CREDENTIALS.committee.password) {
+      navigation.replace(CREDENTIALS.committee.route);
     } else {
       Alert.alert('Login Failed', 'Invalid email or password.');
     }

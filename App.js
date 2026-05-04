@@ -35,6 +35,13 @@ import Login from './Screens/Login/Login';
 import ParentSidebar from './Screens/Parents/Dashboard/ParentSidebar';
 import TeacherSidebar from './Screens/Teachers/Dashboard/Sidebar';
 import AccountSidebar from './Screens/AccountDept/Dashboard/AccountSidebar';
+import Committee from './Screens/Committee/Dashboard/Dashboard';
+import StudentManagement from './Screens/Committee/Student/StudentManagement';
+import FacultyManagement from './Screens/Committee/Faculty/FacultyManagement';
+import ParentManagement from './Screens/Committee/Parent/ParentManagement';
+import Permission from './Screens/Committee/Permission/Permission';
+import AddSchool from './Screens/Committee/AddSchool/AddSchool';
+
 import DefaultersList from './Screens/AccountDept/DefaultersList/DefaultersList';
 import ReceiptsList from './Screens/AccountDept/ReceiptsList/ReceiptsList';
 import SendReminders from './Screens/AccountDept/SendReminders/SendReminders';
@@ -52,6 +59,12 @@ export default function App() {
         <Stack.Screen name="ParentSidebar" component={ParentSidebar} />
         <Stack.Screen name="TeacherSidebar" component={TeacherSidebar} />
         <Stack.Screen name="AccountSidebar" component={AccountSidebar} />
+        <Stack.Screen name="CommitteeSidebar" component={Committee} />
+        <Stack.Screen name="StudentManagement" component={StudentManagement} />
+        <Stack.Screen name="FacultyManagement" component={FacultyManagement} />
+        <Stack.Screen name="ParentManagement" component={ParentManagement} />
+        <Stack.Screen name="Permission" component={Permission} />
+        <Stack.Screen name="AddSchool" component={AddSchool} />
 
         {/* Director Shell */}
         <Stack.Screen name="DirectorSidebar" component={DirectorSidebar} />

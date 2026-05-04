@@ -208,7 +208,7 @@ const HomeworkCard = ({ onViewAll }) => (
       </View>
     ))}
     <TouchableOpacity style={styles.viewAllBtn} activeOpacity={0.7} onPress={onViewAll}>
-      <Text style={styles.viewAllText}>View All Tasks ?</Text>
+      <Text style={styles.viewAllText}>View All Tasks</Text>
     </TouchableOpacity>
   </View>
 );
@@ -219,9 +219,11 @@ const AllTasksScreen = ({ onBack }) => (
     contentContainerStyle={styles.scrollContent}
     showsVerticalScrollIndicator={false}
   >
-    <TouchableOpacity style={styles.viewAllBtn} activeOpacity={0.7} onPress={onBack}>
-      <Text style={styles.viewAllText}>? Back to Dashboard</Text>
-    </TouchableOpacity>
+    <View style={{ alignItems: 'flex-start', marginBottom: 8 }}>
+      <TouchableOpacity style={{ padding: 8 }} activeOpacity={0.7} onPress={onBack}>
+        <Text style={[styles.viewAllText, { fontSize: 18 }]}>←</Text>
+      </TouchableOpacity>
+    </View>
 
     <View style={styles.card}>
       <Text style={styles.cardTitle}>All Homework Tasks</Text>
